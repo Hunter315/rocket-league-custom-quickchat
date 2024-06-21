@@ -45,14 +45,12 @@ const App = () => {
     if (columns[colKey]) {
       columns[colKey].chats.push(
         <div key={key} className="quickchat">
-          <label>
-            {" "}
-            <img
-              src={columns[colKey2].icon}
-              alt={`D-pad ${colKey2}`}
-              className="dpad-icon-small"
-            />
-          </label>
+          <img
+            src={columns[colKey2].icon}
+            alt={`D-pad ${colKey2}`}
+            className="dpad-icon-small"
+          />
+
           <input
             type="text"
             value={quickchats[key]}
