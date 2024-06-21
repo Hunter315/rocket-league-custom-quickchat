@@ -20,6 +20,7 @@ function createWindow() {
       enableRemoteModule: false, // Disable remote module
       nodeIntegration: false, // Disable node integration
     },
+    icon: path.join(__dirname, "assets/icon/app-icon.png"),
   });
 
   if (process.env.NODE_ENV === "development") {
