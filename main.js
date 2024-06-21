@@ -61,9 +61,27 @@ app.on("ready", async () => {
     });
   });
 
+  ipcMain.handle("load-settings", async () => {
+    return {
+      typingSpeed: store.get("typingSpeed", 5),
+      selectedController: store.get("selectedController", null),
+    };
+  });
+
+  ipcMain.on("save-settings", (event, settings) => {
+    store.set("typingSpeed", settings.typingSpeed);
+    store.set("selectedController", settings.selectedController);
+  });
+
+  ipcMain.handle("search-controllers", async () => {
+    const devices = HID.devices();
+    return devices; // Filter for PS4 controllers
+  });
+
   ipcMain.on("send-quickchat", (event, message) => {
     console.log("Sending quickchat:", message);
-    const delay = 5; // Delay in milliseconds between keypresses
+    const typingSpeed = store.get("typingSpeed", 5);
+    const delay = typingSpeed; // Delay in milliseconds between keypresses
     const enterDelay = message.length * delay; // Calculate delay for Enter key press
 
     function pressKeyWithRetry(key, retries = 3) {
@@ -190,13 +208,13 @@ app.on("ready", async () => {
   }
 
   // Test your custom addon directly
-  console.log("Testing custom keyboard addon");
-  const delay = 50; // Delay in milliseconds between keypresses
-  keyboard.typeString("t", delay); // Press 't' to bring up text chat
-  setTimeout(() => {
-    keyboard.typeString("test quickchat type fast", delay); // Type the message
-    setTimeout(() => {
-      keyboard.pressEnter(); // Press Enter
-    }, "test quickchat type fast".length * delay + 100); // Delay based on message length
-  }, 100); // Delay to ensure 't' is registered
+  // console.log("Testing custom keyboard addon");
+  // const delay = 50; // Delay in milliseconds between keypresses
+  // keyboard.typeString("t", delay); // Press 't' to bring up text chat
+  // setTimeout(() => {
+  //   keyboard.typeString("test quickchat type fast", delay); // Type the message
+  //   setTimeout(() => {
+  //     keyboard.pressEnter(); // Press Enter
+  //   }, "test quickchat type fast".length * delay + 100); // Delay based on message length
+  // }, 100); // Delay to ensure 't' is registered
 });

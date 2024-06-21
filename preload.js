@@ -8,4 +8,7 @@ contextBridge.exposeInMainWorld("electron", {
     ipcRenderer.on("quickchats-updated", (event, newQuickchats) =>
       callback(newQuickchats)
     ),
+  loadSettings: () => ipcRenderer.invoke("load-settings"),
+  saveSettings: (settings) => ipcRenderer.send("save-settings", settings),
+  searchControllers: () => ipcRenderer.invoke("search-controllers"),
 });
