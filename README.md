@@ -1,6 +1,6 @@
-# Rocket League Quickchat Manager
+# Rocket League Custom Quickchat Manager
 
-Rocket League Quickchat Manager is a desktop application that allows users to manage and customize quick chat messages for Rocket League using a connected controller. The application provides an easy-to-use interface for setting up custom quick chat messages and selecting a connected controller device for use in-game.
+Rocket League Quickchat Manager is a desktop application that allows users to manage and customize quick chat messages for Rocket League using a connected controller. The application provides an easy-to-use interface for setting up custom quick chat messages and selecting a connected controller device for use in-game. It essentially just opens up the custom typing and types really fast for you.
 
 ### Can't you just use a Macro?
  Yes, yes you can. But this looks nice.
