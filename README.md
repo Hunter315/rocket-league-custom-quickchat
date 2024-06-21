@@ -13,21 +13,22 @@ Rocket League Quickchat Manager is a desktop application that allows users to ma
 
 1. **Clone the repository:**
 
-   ```sh
+   ```
    git clone https://github.com/Hunter315/rocket-league-quickchat.git
    cd rocket-league-quickchat
-
+   ```
+   
 ## Install Dependencies
-    ```sh
+    
     npm install
 
 ## Build the Project
 
-    ```sh
+    
     npm run build
   
 ## Package the Application
-    ```sh
+    
     npm run dist
 
 ## Usage
