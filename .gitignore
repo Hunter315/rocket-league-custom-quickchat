@@ -1,0 +1,60 @@
+# Node.js dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build output
+dist/
+build/
+*.log
+*.log.*
+
+# MacOS system files
+.DS_Store
+
+# Windows system files
+Thumbs.db
+ehthumbs.db
+
+# Environment variable files
+.env
+.env.local
+.env.*.local
+
+# Electron specific files
+electron-builder.json
+release/
+out/
+*.pdb
+*.dll
+*.exe
+
+# C++ build artifacts
+*.o
+*.obj
+*.so
+*.dylib
+*.dll
+*.lib
+*.exp
+*.pdb
+*.exe
+*.sln
+*.vcxproj*
+build/
+
+# Debugging files
+.vscode/
+.idea/
+*.swp
+*.swo
+.vscode/settings.json
+.vscode/tasks.json
+.vscode/launch.json
+.vscode/jsconfig.json
+
+# Other
+.nyc_output/
+coverage/
+.cache/
+.parcel-cache/
