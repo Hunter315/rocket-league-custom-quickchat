@@ -15,3 +15,8 @@ Quickchat 14
 Quickchat 15
 Quickchat 16
 
+tQuickchat 2
+tQuickchat 3
+tQuickchat 16
+tNo, this is Patrick!
+tQuickchat 10
