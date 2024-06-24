@@ -3,6 +3,10 @@
     {
       "target_name": "keyboard",
       "sources": ["src/keyboard.cpp"],
+       "conditions": [
+        ['OS=="win"', {
+          "defines": ["WINDOWS_BUILD"]
+        }]],
       "include_dirs": [
         "<!@(node -p \"require('node-addon-api').include\")"
       ],
