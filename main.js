@@ -1,9 +1,31 @@
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
 const keyboard = require("./my-addon/build/Release/keyboard"); // Import your custom addon
 const HID = require("node-hid");
+const { autoUpdater } = require("electron-updater");
+
+// AutoUpdater configuration
+autoUpdater.on("update-downloaded", () => {
+  const dialogOpts = {
+    type: "info",
+    buttons: ["Restart", "Later"],
+    title: "Application Update",
+    message:
+      "A new version has been downloaded. Restart the application to apply the updates.",
+  };
+
+  dialog.showMessageBox(dialogOpts).then((returnValue) => {
+    if (returnValue.response === 0) autoUpdater.quitAndInstall();
+  });
+});
+
+autoUpdater.on("error", (message) => {
+  console.error("There was a problem updating the application");
+  console.error(message);
+});
 
 let store; // Declare store variable globally
+let processing = false;
 
 async function loadStore() {
   const { default: Store } = await import("electron-store");
@@ -28,6 +50,8 @@ function createWindow() {
   } else {
     win.loadFile(path.join(__dirname, "dist", "index.html"));
   }
+
+  autoUpdater.checkForUpdatesAndNotify(); // Check for updates when the app is ready
 }
 
 app.on("ready", async () => {
@@ -99,7 +123,7 @@ app.on("ready", async () => {
       }
     }
 
-    function pressEnterWithRetry(retries = 3) {
+    function pressEnterWithRetry(retries = 5) {
       if (retries > 0) {
         try {
           keyboard.pressEnter(); // Press Enter
@@ -117,7 +141,8 @@ app.on("ready", async () => {
       setTimeout(() => {
         pressEnterWithRetry(); // Press Enter
         console.log("Quickchat sent");
-      }, enterDelay); // Delay before pressing Enter
+        resetInputs(); // Reset inputs immediately after sending the quickchat
+      }, enterDelay + 200); // Slightly longer delay before pressing Enter to ensure typing is complete
     }, 5); // Delay to ensure 't' is registered
   });
 
@@ -145,6 +170,7 @@ app.on("ready", async () => {
         clearTimeout(inputTimeout);
         inputTimeout = null;
       }
+      processing = false;
     }
 
     function handleQuickchat(inputs) {
@@ -179,6 +205,8 @@ app.on("ready", async () => {
       const thumbstickClick = data[9];
       const activationMethod = store.get("activationMethod", "thumbstick");
 
+      if (processing) return;
+
       if (activationMethod === "thumbstick") {
         if (thumbstickClick === 128 || thumbstickClick === 136) {
           if (!thumbstickPressed) {
@@ -198,6 +226,7 @@ app.on("ready", async () => {
             lastDpadState = dpad;
             console.log("D-pad input:", dpadInputs);
             if (dpadInputs.length === 2) {
+              processing = true;
               handleQuickchat(dpadInputs);
             }
           }
@@ -214,7 +243,13 @@ app.on("ready", async () => {
           dpadInputs.push(dpad);
           lastDpadState = dpad;
           console.log("D-pad input:", dpadInputs);
-          if (dpadInputs.length === 2) {
+          if (dpadInputs.length === 1) {
+            inputTimeout = setTimeout(() => {
+              processing = true;
+              handleQuickchat(dpadInputs);
+            }, 3000);
+          } else if (dpadInputs.length === 2) {
+            processing = true;
             handleQuickchat(dpadInputs);
           }
         }
@@ -226,15 +261,4 @@ app.on("ready", async () => {
       console.error("HID device error:", err);
     });
   }
-
-  // Test your custom addon directly
-  // console.log("Testing custom keyboard addon");
-  // const delay = 50; // Delay in milliseconds between keypresses
-  // keyboard.typeString("t", delay); // Press 't' to bring up text chat
-  // setTimeout(() => {
-  //   keyboard.typeString("test quickchat type fast", delay); // Type the message
-  //   setTimeout(() => {
-  //     keyboard.pressEnter(); // Press Enter
-  //   }, "test quickchat type fast".length * delay + 100); // Delay based on message length
-  // }, 100); // Delay to ensure 't' is registered
 });
