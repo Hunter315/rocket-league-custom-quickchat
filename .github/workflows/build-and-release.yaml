@@ -29,6 +29,8 @@ jobs:
 
       - name: Package Electron app
         run: npm run dist
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Check GH_TOKEN
         run: echo "GH_TOKEN is set"
