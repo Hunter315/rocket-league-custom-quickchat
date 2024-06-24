@@ -11,4 +11,8 @@ contextBridge.exposeInMainWorld("electron", {
   loadSettings: () => ipcRenderer.invoke("load-settings"),
   saveSettings: (settings) => ipcRenderer.send("save-settings", settings),
   searchControllers: () => ipcRenderer.invoke("search-controllers"),
+  onUpdateAvailable: (callback) =>
+    ipcRenderer.on("update-available", (event, info) => callback(info)),
+  onUpdateDownloaded: (callback) =>
+    ipcRenderer.on("update-downloaded", (event, info) => callback(info)),
 });

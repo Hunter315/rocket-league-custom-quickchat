@@ -5,6 +5,7 @@ import dpadUp from "./assets/icons/dpad-up.svg";
 import dpadRight from "./assets/icons/dpad-right.svg";
 import dpadDown from "./assets/icons/dpad-down.svg";
 import dpadLeft from "./assets/icons/dpad-left.svg";
+import "./index.css";
 
 const App = () => {
   const [quickchats, setQuickchats] = useState({});
@@ -14,6 +15,10 @@ const App = () => {
   const [selectedController, setSelectedController] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [expandedDevice, setExpandedDevice] = useState(null);
+  const [activationMethod, setActivationMethod] = useState("thumbstick");
+  const [isInputModalOpen, setIsInputModalOpen] = useState(false);
+  const [currentInputValue, setCurrentInputValue] = useState("");
+  const [currentKey, setCurrentKey] = useState("");
 
   useEffect(() => {
     window.electron
@@ -24,6 +29,19 @@ const App = () => {
     window.electron.loadSettings().then((settings) => {
       setTypingSpeed(settings.typingSpeed || 5);
       setSelectedController(settings.selectedController || null);
+      setActivationMethod(settings.activationMethod || "thumbstick");
+    });
+    window.electron.onUpdateAvailable(() => {
+      alert("A new update is available. Downloading now...");
+    });
+
+    window.electron.onUpdateDownloaded(() => {
+      const userResponse = confirm(
+        "Update Downloaded. It will be installed on restart. Restart now?"
+      );
+      if (userResponse) {
+        window.electron.restartApp();
+      }
     });
   }, []);
 
@@ -36,7 +54,11 @@ const App = () => {
 
   const handleSave = () => {
     window.electron.saveQuickchats(quickchats);
-    window.electron.saveSettings({ typingSpeed, selectedController });
+    window.electron.saveSettings({
+      typingSpeed,
+      selectedController,
+      activationMethod,
+    });
     alert("Settings and Quickchats saved successfully!");
   };
 
@@ -81,6 +103,11 @@ const App = () => {
             type="text"
             value={quickchats[key]}
             onChange={(e) => handleChange(key, e.target.value)}
+            onClick={() => {
+              setCurrentInputValue(quickchats[key]);
+              setCurrentKey(key);
+              setIsInputModalOpen(true);
+            }}
           />
         </div>
       );
@@ -92,6 +119,29 @@ const App = () => {
       <h1>Quickchat Manager</h1>
 
       <div className="quickchat-columns">
+        <Modal
+          isOpen={isInputModalOpen}
+          onRequestClose={() => setIsInputModalOpen(false)}
+          contentLabel="Edit Quickchat"
+          className="input-modal"
+          overlayClassName="input-modal-overlay"
+        >
+          <h2>Edit Quickchat</h2>
+          <textarea
+            value={currentInputValue}
+            onChange={(e) => setCurrentInputValue(e.target.value)}
+            style={{ width: "100%", height: "200px" }}
+          />
+          <button
+            onClick={() => {
+              handleChange(currentKey, currentInputValue);
+              setIsInputModalOpen(false);
+            }}
+          >
+            Ok
+          </button>
+          <button onClick={() => setIsInputModalOpen(false)}>Cancel</button>
+        </Modal>
         {Object.keys(columns).map((colKey) => (
           <div key={colKey} className="quickchat-column">
             <img
@@ -119,6 +169,16 @@ const App = () => {
             value={typingSpeed}
             onChange={(e) => setTypingSpeed(parseInt(e.target.value, 10))}
           />
+        </label>
+        <label className="label-search">
+          Activation Method:
+          <select
+            value={activationMethod}
+            onChange={(e) => setActivationMethod(e.target.value)}
+          >
+            <option value="thumbstick">Right Thumbstick Click</option>
+            <option value="dpad">None</option>
+          </select>
         </label>
         <Modal
           isOpen={isModalOpen}

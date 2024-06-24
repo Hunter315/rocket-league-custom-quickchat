@@ -7,19 +7,21 @@
     "start": "webpack serve --mode development",
     "build": "webpack --mode production",
     "electron": "electron .",
-    "dist": "npm run build && electron-builder"
+    "build-addon": "cd ./my-addon && node-gyp configure && node-gyp build",
+    "dist": "npm run build-addon && npm run build && electron-builder"
   },
   "author": "Hunter Smith",
   "license": "MIT",
   "dependencies": {
+    "electron-store": "^10.0.0",
+    "electron-updater": "^6.2.1",
     "node-addon-api": "^8.0.0",
     "node-gamepad": "^0.1.15",
     "node-hid": "^3.1.0",
     "node-key-sender": "^1.0.11",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "react-modal": "^3.16.1",
-    "electron-store": "^10.0.0"
+    "react-modal": "^3.16.1"
   },
   "devDependencies": {
     "@babel/core": "^7.12.3",
@@ -37,16 +39,21 @@
     "webpack-cli": "^4.2.0",
     "webpack-dev-server": "^3.11.0"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Hunter315/rocket-league-custom-quickchat"
+  },
   "build": {
     "appId": "com.hunter.rocketleaguequickchat",
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "assets"
     },
     "files": [
       "dist/**/*",
       "main.js",
       "preload.js",
-      "my-addon/**/*"
+      "my-addon/build/Release/**/*"
     ],
     "win": {
       "target": "nsis",
@@ -59,6 +66,11 @@
     "linux": {
       "target": "AppImage",
       "icon": "src/assets/icons/app-icon.png"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "Hunter315",
+      "repo": "rocket-league-custom-quickchat"
     }
   }
 }

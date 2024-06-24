@@ -58,3 +58,5 @@ build/
 coverage/
 .cache/
 .parcel-cache/
+
+test.txt

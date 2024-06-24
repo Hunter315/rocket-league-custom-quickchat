@@ -1,9 +1,31 @@
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
 const keyboard = require("./my-addon/build/Release/keyboard"); // Import your custom addon
 const HID = require("node-hid");
+const { autoUpdater } = require("electron-updater");
+
+// AutoUpdater configuration
+autoUpdater.on("update-downloaded", () => {
+  const dialogOpts = {
+    type: "info",
+    buttons: ["Restart", "Later"],
+    title: "Application Update",
+    message:
+      "A new version has been downloaded. Restart the application to apply the updates.",
+  };
+
+  dialog.showMessageBox(dialogOpts).then((returnValue) => {
+    if (returnValue.response === 0) autoUpdater.quitAndInstall();
+  });
+});
+
+autoUpdater.on("error", (message) => {
+  console.error("There was a problem updating the application");
+  console.error(message);
+});
 
 let store; // Declare store variable globally
+let processing = false;
 
 async function loadStore() {
   const { default: Store } = await import("electron-store");
@@ -28,6 +50,8 @@ function createWindow() {
   } else {
     win.loadFile(path.join(__dirname, "dist", "index.html"));
   }
+
+  autoUpdater.checkForUpdatesAndNotify(); // Check for updates when the app is ready
 }
 
 app.on("ready", async () => {
@@ -66,17 +90,19 @@ app.on("ready", async () => {
     return {
       typingSpeed: store.get("typingSpeed", 5),
       selectedController: store.get("selectedController", null),
+      activationMethod: store.get("activationMethod", "thumbstick"),
     };
   });
 
   ipcMain.on("save-settings", (event, settings) => {
     store.set("typingSpeed", settings.typingSpeed);
     store.set("selectedController", settings.selectedController);
+    store.set("activationMethod", settings.activationMethod);
   });
 
   ipcMain.handle("search-controllers", async () => {
     const devices = HID.devices();
-    return devices; // Filter for PS4 controllers
+    return devices; // Return all HID devices
   });
 
   ipcMain.on("send-quickchat", (event, message) => {
@@ -97,7 +123,7 @@ app.on("ready", async () => {
       }
     }
 
-    function pressEnterWithRetry(retries = 3) {
+    function pressEnterWithRetry(retries = 5) {
       if (retries > 0) {
         try {
           keyboard.pressEnter(); // Press Enter
@@ -115,7 +141,8 @@ app.on("ready", async () => {
       setTimeout(() => {
         pressEnterWithRetry(); // Press Enter
         console.log("Quickchat sent");
-      }, enterDelay); // Delay before pressing Enter
+        resetInputs(); // Reset inputs immediately after sending the quickchat
+      }, enterDelay + 200); // Slightly longer delay before pressing Enter to ensure typing is complete
     }, 5); // Delay to ensure 't' is registered
   });
 
@@ -143,6 +170,7 @@ app.on("ready", async () => {
         clearTimeout(inputTimeout);
         inputTimeout = null;
       }
+      processing = false;
     }
 
     function handleQuickchat(inputs) {
@@ -175,16 +203,38 @@ app.on("ready", async () => {
     device.on("data", (data) => {
       const dpad = data[8];
       const thumbstickClick = data[9];
+      const activationMethod = store.get("activationMethod", "thumbstick");
 
-      if (thumbstickClick === 128 || thumbstickClick === 136) {
-        if (!thumbstickPressed) {
-          thumbstickPressed = true;
-          console.log("Right thumbstick pressed");
-          inputTimeout = setTimeout(resetInputs, 3000); // 3-second window to input D-pad directions
+      if (processing) return;
+
+      if (activationMethod === "thumbstick") {
+        if (thumbstickClick === 128 || thumbstickClick === 136) {
+          if (!thumbstickPressed) {
+            thumbstickPressed = true;
+            console.log("Right thumbstick pressed");
+            inputTimeout = setTimeout(resetInputs, 3000); // 3-second window to input D-pad directions
+          }
         }
-      }
 
-      if (thumbstickPressed) {
+        if (thumbstickPressed) {
+          if (
+            dpad !== 8 &&
+            (dpadInputs.length === 0 || lastDpadState === 8) &&
+            [0, 2, 4, 6].includes(dpad)
+          ) {
+            dpadInputs.push(dpad);
+            lastDpadState = dpad;
+            console.log("D-pad input:", dpadInputs);
+            if (dpadInputs.length === 2) {
+              processing = true;
+              handleQuickchat(dpadInputs);
+            }
+          }
+          lastDpadState = dpad;
+        } else {
+          lastDpadState = 8; // Reset state when thumbstick is not pressed
+        }
+      } else if (activationMethod === "dpad") {
         if (
           dpad !== 8 &&
           (dpadInputs.length === 0 || lastDpadState === 8) &&
@@ -193,13 +243,17 @@ app.on("ready", async () => {
           dpadInputs.push(dpad);
           lastDpadState = dpad;
           console.log("D-pad input:", dpadInputs);
-          if (dpadInputs.length === 2) {
+          if (dpadInputs.length === 1) {
+            inputTimeout = setTimeout(() => {
+              processing = true;
+              handleQuickchat(dpadInputs);
+            }, 3000);
+          } else if (dpadInputs.length === 2) {
+            processing = true;
             handleQuickchat(dpadInputs);
           }
         }
         lastDpadState = dpad;
-      } else {
-        lastDpadState = 8; // Reset state when thumbstick is not pressed
       }
     });
 
@@ -207,15 +261,4 @@ app.on("ready", async () => {
       console.error("HID device error:", err);
     });
   }
-
-  // Test your custom addon directly
-  // console.log("Testing custom keyboard addon");
-  // const delay = 50; // Delay in milliseconds between keypresses
-  // keyboard.typeString("t", delay); // Press 't' to bring up text chat
-  // setTimeout(() => {
-  //   keyboard.typeString("test quickchat type fast", delay); // Type the message
-  //   setTimeout(() => {
-  //     keyboard.pressEnter(); // Press Enter
-  //   }, "test quickchat type fast".length * delay + 100); // Delay based on message length
-  // }, 100); // Delay to ensure 't' is registered
 });
