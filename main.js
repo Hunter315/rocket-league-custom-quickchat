@@ -3,6 +3,12 @@ const path = require("path");
 const keyboard = require("./my-addon/build/Release/keyboard"); // Import your custom addon
 const HID = require("node-hid");
 const { autoUpdater } = require("electron-updater");
+const log = require("electron-log");
+
+// Configure logging
+log.transports.file.level = "debug";
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = "debug";
 
 // AutoUpdater configuration
 autoUpdater.on("update-downloaded", () => {
@@ -13,7 +19,7 @@ autoUpdater.on("update-downloaded", () => {
     message:
       "A new version has been downloaded. Restart the application to apply the updates.",
   };
-
+  log.info("Update downloaded");
   dialog.showMessageBox(dialogOpts).then((returnValue) => {
     if (returnValue.response === 0) autoUpdater.quitAndInstall();
   });
@@ -22,6 +28,7 @@ autoUpdater.on("update-downloaded", () => {
 autoUpdater.on("error", (message) => {
   console.error("There was a problem updating the application");
   console.error(message);
+  log.info("Error updating the app", message);
 });
 
 let store; // Declare store variable globally
