@@ -66,17 +66,19 @@ app.on("ready", async () => {
     return {
       typingSpeed: store.get("typingSpeed", 5),
       selectedController: store.get("selectedController", null),
+      activationMethod: store.get("activationMethod", "thumbstick"),
     };
   });
 
   ipcMain.on("save-settings", (event, settings) => {
     store.set("typingSpeed", settings.typingSpeed);
     store.set("selectedController", settings.selectedController);
+    store.set("activationMethod", settings.activationMethod);
   });
 
   ipcMain.handle("search-controllers", async () => {
     const devices = HID.devices();
-    return devices; // Filter for PS4 controllers
+    return devices; // Return all HID devices
   });
 
   ipcMain.on("send-quickchat", (event, message) => {
@@ -175,16 +177,35 @@ app.on("ready", async () => {
     device.on("data", (data) => {
       const dpad = data[8];
       const thumbstickClick = data[9];
+      const activationMethod = store.get("activationMethod", "thumbstick");
 
-      if (thumbstickClick === 128 || thumbstickClick === 136) {
-        if (!thumbstickPressed) {
-          thumbstickPressed = true;
-          console.log("Right thumbstick pressed");
-          inputTimeout = setTimeout(resetInputs, 3000); // 3-second window to input D-pad directions
+      if (activationMethod === "thumbstick") {
+        if (thumbstickClick === 128 || thumbstickClick === 136) {
+          if (!thumbstickPressed) {
+            thumbstickPressed = true;
+            console.log("Right thumbstick pressed");
+            inputTimeout = setTimeout(resetInputs, 3000); // 3-second window to input D-pad directions
+          }
         }
-      }
 
-      if (thumbstickPressed) {
+        if (thumbstickPressed) {
+          if (
+            dpad !== 8 &&
+            (dpadInputs.length === 0 || lastDpadState === 8) &&
+            [0, 2, 4, 6].includes(dpad)
+          ) {
+            dpadInputs.push(dpad);
+            lastDpadState = dpad;
+            console.log("D-pad input:", dpadInputs);
+            if (dpadInputs.length === 2) {
+              handleQuickchat(dpadInputs);
+            }
+          }
+          lastDpadState = dpad;
+        } else {
+          lastDpadState = 8; // Reset state when thumbstick is not pressed
+        }
+      } else if (activationMethod === "dpad") {
         if (
           dpad !== 8 &&
           (dpadInputs.length === 0 || lastDpadState === 8) &&
@@ -198,8 +219,6 @@ app.on("ready", async () => {
           }
         }
         lastDpadState = dpad;
-      } else {
-        lastDpadState = 8; // Reset state when thumbstick is not pressed
       }
     });
 

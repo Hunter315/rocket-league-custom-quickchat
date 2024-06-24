@@ -14,6 +14,7 @@ const App = () => {
   const [selectedController, setSelectedController] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [expandedDevice, setExpandedDevice] = useState(null);
+  const [activationMethod, setActivationMethod] = useState("thumbstick");
 
   useEffect(() => {
     window.electron
@@ -24,6 +25,7 @@ const App = () => {
     window.electron.loadSettings().then((settings) => {
       setTypingSpeed(settings.typingSpeed || 5);
       setSelectedController(settings.selectedController || null);
+      setActivationMethod(settings.activationMethod || "thumbstick");
     });
   }, []);
 
@@ -36,7 +38,11 @@ const App = () => {
 
   const handleSave = () => {
     window.electron.saveQuickchats(quickchats);
-    window.electron.saveSettings({ typingSpeed, selectedController });
+    window.electron.saveSettings({
+      typingSpeed,
+      selectedController,
+      activationMethod,
+    });
     alert("Settings and Quickchats saved successfully!");
   };
 
@@ -119,6 +125,17 @@ const App = () => {
             value={typingSpeed}
             onChange={(e) => setTypingSpeed(parseInt(e.target.value, 10))}
           />
+        </label>
+        <label className="label-search">
+          Activation Method:
+          <select
+            value={activationMethod}
+            onChange={(e) => setActivationMethod(e.target.value)}
+          >
+            <option value="thumbstick">Thumbstick</option>
+            <option value="dpad">D-pad</option>
+            <option value="button">Button</option>
+          </select>
         </label>
         <Modal
           isOpen={isModalOpen}
