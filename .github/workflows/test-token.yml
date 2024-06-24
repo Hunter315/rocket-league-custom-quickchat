@@ -18,14 +18,19 @@ jobs:
 
       - name: Check GH_TOKEN
         run: echo "GH_TOKEN is set"
+        shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Validate GH_TOKEN
         run: |
-          if [ -z "$GH_TOKEN" ]; then
-            echo "GH_TOKEN is not set";
-            exit 1;
-          else
-            echo "GH_TOKEN is $GH_TOKEN";
-          fi
+          if (-not $env:GH_TOKEN) {
+            Write-Host "GH_TOKEN is not set"
+            exit 1
+          }
+          else {
+            Write-Host "GH_TOKEN is set"
+          }
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
