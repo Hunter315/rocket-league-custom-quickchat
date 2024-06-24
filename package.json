@@ -8,7 +8,8 @@
     "build": "webpack --mode production",
     "electron": "electron .",
     "build-addon": "cd ./my-addon && node-gyp configure && node-gyp build",
-    "dist": "npm run build-addon && npm run build && electron-builder"
+    "dist": "npm run build-addon && npm run build && electron-builder",
+    "publish": "electron-builder --win -p always"
   },
   "author": "Hunter Smith",
   "license": "MIT",

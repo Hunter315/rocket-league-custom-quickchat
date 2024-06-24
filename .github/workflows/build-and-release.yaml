@@ -34,5 +34,4 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: dist/*.{exe,dmg,AppImage}
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          repo-token: ${{ secrets.GH_TOKEN }}
