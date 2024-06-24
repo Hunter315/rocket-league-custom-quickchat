@@ -1,7 +1,8 @@
-#include <napi.h>
 #ifdef _WIN32
 #include <Windows.h>
 #endif
+#include <napi.h>
+#include <unordered_map>
 #include <thread>
 #include <chrono>
 
@@ -36,7 +37,6 @@ WORD GetVirtualKeyCode(char c, bool &shift)
 {
     shift = false;
 
-    // Mapping of special characters to virtual key codes and shift requirement
     static const std::unordered_map<char, WORD> specialKeyMap = {
         {'!', '1'}, {'@', '2'}, {'#', '3'}, {'$', '4'}, {'%', '5'}, {'^', '6'}, {'&', '7'}, {'*', '8'}, {'(', '9'}, {')', '0'}, {'_', VK_OEM_MINUS}, {'+', VK_OEM_PLUS}, {'{', VK_OEM_4}, {'}', VK_OEM_6}, {'|', VK_OEM_5}, {':', VK_OEM_1}, {'"', VK_OEM_7}, {'<', VK_OEM_COMMA}, {'>', VK_OEM_PERIOD}, {'?', VK_OEM_2}};
 
@@ -60,14 +60,14 @@ void TypeString(const Napi::CallbackInfo &info)
 {
     Napi::Env env = info.Env();
     std::string str = info[0].As<Napi::String>();
-    int delay = info[1].As<Napi::Number>().Int32Value(); // Get delay from arguments
+    int delay = info[1].As<Napi::Number>().Int32Value();
 
     for (char c : str)
     {
         bool shift = false;
         WORD key = GetVirtualKeyCode(c, shift);
         PressKey(key, shift);
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay)); // Add delay between keypresses
+        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
     }
 }
 
