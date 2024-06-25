@@ -1,14 +1,16 @@
 const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
-const keyboard = require("./my-addon/build/Release/keyboard"); // Import your custom addon
+const keyboard = require("./my-addon/build/Release/keyboard");
 const HID = require("node-hid");
 const { autoUpdater } = require("electron-updater");
 const log = require("electron-log");
+const Store = require("./Store.js");
 
 // Configure logging
-log.transports.file.level = "debug";
+log.transports.file.resolvePath = () =>
+  path.join(app.getPath("userData"), "logs", "main.log");
 autoUpdater.logger = log;
-autoUpdater.logger.transports.file.level = "debug";
+autoUpdater.logger.transports.file.level = "info";
 
 // AutoUpdater configuration
 autoUpdater.on("update-downloaded", () => {
@@ -31,49 +33,13 @@ autoUpdater.on("error", (message) => {
   log.info("Error updating the app", message);
 });
 
-let store; // Declare store variable globally
 let processing = false;
 
-async function loadStore() {
-  const { default: Store } = await import("electron-store");
-  return new Store();
-}
-
-function createWindow() {
-  const win = new BrowserWindow({
-    width: 1200,
-    height: 1000,
-    webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
-      contextIsolation: true, // Enable context isolation
-      enableRemoteModule: false, // Disable remote module
-      nodeIntegration: false, // Disable node integration
-    },
-    icon: path.join(__dirname, "assets/icon/app-icon.png"),
-  });
-
-  if (process.env.NODE_ENV === "development") {
-    win.loadURL("http://localhost:9000");
-  } else {
-    win.loadFile(path.join(__dirname, "dist", "index.html"));
-  }
-
-  autoUpdater.checkForUpdatesAndNotify(); // Check for updates when the app is ready
-}
-
-app.on("ready", async () => {
-  store = await loadStore(); // Initialize store asynchronously
-  createWindow();
-
-  ipcMain.on("save-quickchats", (event, quickchats) => {
-    store.set("quickchats", quickchats);
-    BrowserWindow.getAllWindows().forEach((win) => {
-      win.webContents.send("quickchats-updated", quickchats);
-    });
-  });
-
-  ipcMain.handle("load-quickchats", async () => {
-    return store.get("quickchats", {
+// Initialize the store synchronously
+const store = new Store({
+  configName: "user-preferences",
+  defaults: {
+    quickchats: {
       "0,0": "Quickchat 1",
       "0,2": "Quickchat 2",
       "0,4": "Quickchat 3",
@@ -90,14 +56,72 @@ app.on("ready", async () => {
       "6,2": "Quickchat 14",
       "6,4": "Quickchat 15",
       "6,6": "Quickchat 16",
+    },
+    typingSpeed: 5,
+    selectedController: null,
+    activationMethod: "thumbstick",
+  },
+});
+
+function createWindow() {
+  try {
+    log.info("Creating window");
+    let win = new BrowserWindow({
+      width: 1200,
+      height: 1000,
+      webPreferences: {
+        preload: path.join(__dirname, "preload.js"),
+        contextIsolation: true,
+        enableRemoteModule: false,
+        nodeIntegration: false,
+      },
+      icon: path.join(__dirname, "assets/icon/app-icon.png"),
     });
+
+    win
+      .loadFile(path.join(__dirname, "dist", "index.html"))
+      .then(() => {
+        log.info("Window loaded");
+      })
+      .catch((error) => {
+        log.error("Failed to load window", error);
+      });
+
+    win.on("closed", function () {
+      log.info("Window closed.");
+      win = null;
+    });
+
+    autoUpdater.checkForUpdatesAndNotify();
+  } catch (e) {
+    log.info("Error creating window: ", e);
+  }
+}
+
+app.on("ready", async () => {
+  log.info("App is ready");
+  try {
+    createWindow();
+  } catch (e) {
+    log.error("Error during app ready event: ", e);
+  }
+
+  ipcMain.on("save-quickchats", (event, quickchats) => {
+    store.set("quickchats", quickchats);
+    BrowserWindow.getAllWindows().forEach((win) => {
+      win.webContents.send("quickchats-updated", quickchats);
+    });
+  });
+
+  ipcMain.handle("load-quickchats", async () => {
+    return store.get("quickchats");
   });
 
   ipcMain.handle("load-settings", async () => {
     return {
-      typingSpeed: store.get("typingSpeed", 5),
-      selectedController: store.get("selectedController", null),
-      activationMethod: store.get("activationMethod", "thumbstick"),
+      typingSpeed: store.get("typingSpeed"),
+      selectedController: store.get("selectedController"),
+      activationMethod: store.get("activationMethod"),
     };
   });
 
@@ -109,19 +133,19 @@ app.on("ready", async () => {
 
   ipcMain.handle("search-controllers", async () => {
     const devices = HID.devices();
-    return devices; // Return all HID devices
+    return devices;
   });
 
   ipcMain.on("send-quickchat", (event, message) => {
     console.log("Sending quickchat:", message);
-    const typingSpeed = store.get("typingSpeed", 5);
-    const delay = typingSpeed; // Delay in milliseconds between keypresses
-    const enterDelay = message.length * delay; // Calculate delay for Enter key press
+    const typingSpeed = store.get("typingSpeed");
+    const delay = typingSpeed;
+    const enterDelay = message.length * delay;
 
     function pressKeyWithRetry(key, retries = 3) {
       if (retries > 0) {
         try {
-          keyboard.typeString(key, delay); // Press the key
+          keyboard.typeString(key, delay);
           console.log(`Pressed key: ${key}`);
         } catch (error) {
           console.log(`Error pressing key: ${key}. Retrying...`);
@@ -133,7 +157,7 @@ app.on("ready", async () => {
     function pressEnterWithRetry(retries = 5) {
       if (retries > 0) {
         try {
-          keyboard.pressEnter(); // Press Enter
+          keyboard.pressEnter();
           console.log("Pressed Enter");
         } catch (error) {
           console.log("Error pressing Enter. Retrying...");
@@ -142,18 +166,17 @@ app.on("ready", async () => {
       }
     }
 
-    pressKeyWithRetry("t"); // Press 't' to bring up text chat
+    pressKeyWithRetry("t");
     setTimeout(() => {
-      keyboard.typeString(message, delay); // Type the message
+      keyboard.typeString(message, delay);
       setTimeout(() => {
-        pressEnterWithRetry(); // Press Enter
+        pressEnterWithRetry();
         console.log("Quickchat sent");
-        resetInputs(); // Reset inputs immediately after sending the quickchat
-      }, enterDelay + 200); // Slightly longer delay before pressing Enter to ensure typing is complete
-    }, 5); // Delay to ensure 't' is registered
+        resetInputs();
+      }, enterDelay + 200);
+    }, 5);
   });
 
-  // Detect and handle PlayStation controller input
   const devices = HID.devices();
   console.log("Detected HID devices:", devices);
 
@@ -166,13 +189,13 @@ app.on("ready", async () => {
     const device = new HID.HID(ps4Controller.path);
     let thumbstickPressed = false;
     let dpadInputs = [];
-    let lastDpadState = 8; // Initial state
+    let lastDpadState = 8;
     let inputTimeout;
 
     function resetInputs() {
       thumbstickPressed = false;
       dpadInputs = [];
-      lastDpadState = 8; // Reset to initial state
+      lastDpadState = 8;
       if (inputTimeout) {
         clearTimeout(inputTimeout);
         inputTimeout = null;
@@ -181,24 +204,7 @@ app.on("ready", async () => {
     }
 
     function handleQuickchat(inputs) {
-      const quickchatMap = store.get("quickchats", {
-        "0,0": "Quickchat 1",
-        "0,2": "Quickchat 2",
-        "0,4": "Quickchat 3",
-        "0,6": "Quickchat 4",
-        "2,0": "Quickchat 5",
-        "2,2": "Quickchat 6",
-        "2,4": "Quickchat 7",
-        "2,6": "Quickchat 8",
-        "4,0": "Quickchat 9",
-        "4,2": "Quickchat 10",
-        "4,4": "Quickchat 11",
-        "4,6": "Quickchat 12",
-        "6,0": "Quickchat 13",
-        "6,2": "Quickchat 14",
-        "6,4": "Quickchat 15",
-        "6,6": "Quickchat 16",
-      });
+      const quickchatMap = store.get("quickchats");
       const key = inputs.join(",");
       const message = quickchatMap[key];
       if (message) {
@@ -210,7 +216,7 @@ app.on("ready", async () => {
     device.on("data", (data) => {
       const dpad = data[8];
       const thumbstickClick = data[9];
-      const activationMethod = store.get("activationMethod", "thumbstick");
+      const activationMethod = store.get("activationMethod");
 
       if (processing) return;
 
@@ -219,7 +225,7 @@ app.on("ready", async () => {
           if (!thumbstickPressed) {
             thumbstickPressed = true;
             console.log("Right thumbstick pressed");
-            inputTimeout = setTimeout(resetInputs, 3000); // 3-second window to input D-pad directions
+            inputTimeout = setTimeout(resetInputs, 3000);
           }
         }
 
@@ -239,7 +245,7 @@ app.on("ready", async () => {
           }
           lastDpadState = dpad;
         } else {
-          lastDpadState = 8; // Reset state when thumbstick is not pressed
+          lastDpadState = 8;
         }
       } else if (activationMethod === "dpad") {
         if (

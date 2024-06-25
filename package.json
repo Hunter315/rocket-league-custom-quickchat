@@ -4,18 +4,20 @@
   "description": "A quickchat manager for Rocket League",
   "main": "main.js",
   "scripts": {
+    "clean": "rimraf dist",
     "start": "webpack serve --mode development",
     "build": "webpack --mode production",
     "electron": "electron .",
     "build-addon": "cd ./my-addon && node-gyp configure && node-gyp build",
-    "dist": "npm run build-addon && npm run build && electron-builder",
-    "publish": "electron-builder --win -p always"
+    "dist": "npm run clean && npm run build-addon && npm run build && electron-builder",
+    "publish": "electron-builder --win -p always",
+    "postinstall": "electron-builder install-app-deps"
+
   },
   "author": "Hunter Smith",
   "license": "MIT",
   "dependencies": {
     "electron-log": "^5.1.5",
-    "electron-store": "^10.0.0",
     "electron-updater": "^6.2.1",
     "node-addon-api": "^8.0.0",
     "node-gamepad": "^0.1.15",
@@ -47,24 +49,25 @@
   },
   "build": {
     "appId": "com.hunter.rocketleaguequickchat",
+    "productName": "rocket-league-custom-quickchat",
     "directories": {
       "output": "dist",
       "buildResources": "assets"
     },
     "nsis": {
       "oneClick": false,
+      "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "artifactName": "${productName} Setup ${version}.${ext}",
-      "include": "build/installer.nsh",
-      "logging": true
+      "include": "installer.nsh"
     },
     "files": [
       "dist/**/*",
       "main.js",
       "preload.js",
-      "my-addon/build/Release/**/*"
+      "my-addon/build/Release/**/*",
+      "Store.js"
     ],
     "win": {
       "target": "nsis",
