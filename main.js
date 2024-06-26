@@ -2,39 +2,46 @@ const { app, ipcMain, BrowserWindow } = require("electron");
 const log = require("electron-log");
 const path = require("path");
 
-const { createWindow } = require("./components/window");
-const { initializeUpdater } = require("./components/updater");
-const { initializeKeyboard } = require("./components/keyboard");
-const { initializeController } = require("./components/controller");
-const Store = require("./components/store");
+const { createWindow } = require("./modules/window");
+const { initializeUpdater } = require("./modules/updater");
+const { initializeKeyboard } = require("./modules/keyboard");
+const {
+  initializeController,
+  searchControllers,
+} = require("./modules/controller");
+const Store = require("./modules/store");
 
 // Initialize the store synchronously
 const store = new Store({
   configName: "user-preferences",
   defaults: {
-    quickchats: {
-      "0,0": "Quickchat 1",
-      "0,2": "Quickchat 2",
-      "0,4": "Quickchat 3",
-      "0,6": "Quickchat 4",
-      "2,0": "Quickchat 5",
-      "2,2": "Quickchat 6",
-      "2,4": "Quickchat 7",
-      "2,6": "Quickchat 8",
-      "4,0": "Quickchat 9",
-      "4,2": "Quickchat 10",
-      "4,4": "Quickchat 11",
-      "4,6": "Quickchat 12",
-      "6,0": "Quickchat 13",
-      "6,2": "Quickchat 14",
-      "6,4": "Quickchat 15",
-      "6,6": "Quickchat 16",
-    },
+    quickchats: [
+      {
+        "0,0": "Quickchat 1",
+        "0,2": "Quickchat 2",
+        "0,4": "Quickchat 3",
+        "0,6": "Quickchat 4",
+        "2,0": "Quickchat 5",
+        "2,2": "Quickchat 6",
+        "2,4": "Quickchat 7",
+        "2,6": "Quickchat 8",
+        "4,0": "Quickchat 9",
+        "4,2": "Quickchat 10",
+        "4,4": "Quickchat 11",
+        "4,6": "Quickchat 12",
+        "6,0": "Quickchat 13",
+        "6,2": "Quickchat 14",
+        "6,4": "Quickchat 15",
+        "6,6": "Quickchat 16",
+      },
+    ],
     typingSpeed: 5,
     selectedController: null,
     activationMethod: "thumbstick",
   },
 });
+
+let currentTab = 0;
 
 app.on("ready", async () => {
   log.info("App is ready");
@@ -42,7 +49,11 @@ app.on("ready", async () => {
     createWindow();
     initializeUpdater();
     initializeKeyboard(ipcMain, store);
-    initializeController(ipcMain, store);
+    initializeController(ipcMain, store, () => currentTab); // Pass a function to get the current tab
+
+    // Emit the initial current-tab-updated event
+    ipcMain.emit("current-tab-updated", null, currentTab);
+    log.info(`Initial tab set to: ${currentTab}`);
   } catch (e) {
     log.error("Error during app ready event: ", e);
   }
@@ -73,7 +84,19 @@ app.on("ready", async () => {
   });
 
   ipcMain.handle("search-controllers", async () => {
-    const devices = HID.devices();
+    const devices = searchControllers();
     return devices;
+  });
+
+  ipcMain.on("update-current-tab", (event, tabIndex) => {
+    currentTab = tabIndex;
+    log.info(`Current tab updated to: ${currentTab}`);
+    BrowserWindow.getAllWindows().forEach((win) => {
+      log.info(
+        `Sending current-tab-updated event to window with tab: ${currentTab}`
+      );
+      win.webContents.send("current-tab-updated", currentTab); // Notify all windows of the current tab change
+    });
+    ipcMain.emit("current-tab-updated", null, currentTab); // Ensure event is propagated to ipcMain listeners
   });
 });

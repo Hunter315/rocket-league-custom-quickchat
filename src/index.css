@@ -25,6 +25,31 @@ h1 {
   text-align: center;
 }
 
+.tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.tab-button {
+  background: #40444B;
+  color: #FFFFFF;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin: 0 5px;
+  border-radius: 4px;
+}
+
+.tab-button.active {
+  background: #7289DA;
+}
+
+.tab-button:hover {
+  background: #5b6eae;
+}
+
 .quickchat-columns {
   display: flex;
   justify-content: space-between;
@@ -42,7 +67,6 @@ h1 {
   animation: glow 0.5s ease-in-out, pop 0.5s ease-in-out;
 }
 
-
 @keyframes glow {
   0% {
     box-shadow: 0 0 5px #7289da;
@@ -53,27 +77,6 @@ h1 {
 }
 
 @keyframes pop {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-@keyframes item-glow {
-  0% {
-    box-shadow: 0 0 5px #FF5252;
-  }
-  100% {
-    box-shadow: 0 0 20px #FF5252;
-  }
-}
-
-@keyframes item-pop {
   0% {
     transform: scale(1);
   }
@@ -289,6 +292,7 @@ button:focus {
   width: 96%;
 }
 
+
 .input-modal button {
   background-color: #7289DA;
   color: #FFFFFF;
@@ -308,3 +312,60 @@ button:focus {
 .input-modal button:first-of-type {
   margin-right: 10px;
 }
+
+/* Add these styles to your existing CSS */
+/* Add these styles to your existing CSS */
+
+.tabs {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+}
+
+.tab button {
+  background: #40444B;
+  color: #FFFFFF;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-radius: 4px 0 0 4px;
+}
+
+.tab.active button {
+  background: #7289DA;
+}
+
+.tab button:hover {
+  background: #5b6eae;
+}
+
+.tab button:last-child {
+  background: #FF5252;
+  border-radius: 0 4px 4px 0;
+}
+
+.tab button:last-child:hover {
+  background: #ff4a4a;
+}
+
+.tabs button {
+  background: #40444B;
+  color: #FFFFFF;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-radius: 4px;
+}
+
+.tabs button:hover {
+  background: #5b6eae;
+}
+
