@@ -6,6 +6,7 @@ const Settings = ({
   activationMethod,
   setActivationMethod,
   handleSearchControllers,
+  selectedController,
 }) => {
   return (
     <div className="settings">
@@ -31,6 +32,16 @@ const Settings = ({
           <option value="dpad">None</option>
         </select>
       </label>
+      {selectedController && (
+        <div>
+          <h3>
+            Selected Controller:{" "}
+            {selectedController.product ||
+              selectedController.manufacturer ||
+              selectedController.path}
+          </h3>
+        </div>
+      )}
     </div>
   );
 };

@@ -175,32 +175,6 @@ const App = () => {
   const activeQuickchats = quickchatsStore[currentTab] || {};
   console.log("Active Quickchats:", activeQuickchats);
 
-  Object.keys(activeQuickchats).forEach((key) => {
-    const colKey = key.split(",")[0];
-    const colKey2 = key.split(",")[1];
-    if (columns[colKey]) {
-      columns[colKey].chats.push(
-        <div key={key} className="quickchat">
-          <img
-            src={columns[colKey2].icon}
-            alt={`D-pad ${colKey2}`}
-            className="dpad-icon-small"
-          />
-          <input
-            type="text"
-            value={activeQuickchats[key]}
-            onChange={(e) => handleChange(key, e.target.value)}
-            onClick={() => {
-              setCurrentInputValue(activeQuickchats[key]);
-              setCurrentKey(key);
-              setIsInputModalOpen(true);
-            }}
-          />
-        </div>
-      );
-    }
-  });
-
   return (
     <div className="container">
       <h1>Quickchat Manager</h1>
@@ -229,6 +203,11 @@ const App = () => {
             key={colKey}
             colKey={colKey}
             column={columns[colKey]}
+            handleChange={handleChange}
+            setCurrentInputValue={setCurrentInputValue}
+            setCurrentKey={setCurrentKey}
+            setIsInputModalOpen={setIsInputModalOpen}
+            activeQuickchats={activeQuickchats}
           />
         ))}
       </div>
@@ -241,6 +220,7 @@ const App = () => {
         activationMethod={activationMethod}
         setActivationMethod={setActivationMethod}
         handleSearchControllers={handleSearchControllers}
+        selectedController={selectedController}
       />
       <ControllerModal
         isOpen={isModalOpen}
@@ -250,16 +230,6 @@ const App = () => {
         toggleDevice={toggleDevice}
         handleSelectController={handleSelectController}
       />
-      {selectedController && (
-        <div>
-          <h3>
-            Selected Controller:{" "}
-            {selectedController.product ||
-              selectedController.manufacturer ||
-              selectedController.path}
-          </h3>
-        </div>
-      )}
       {toastMessage && (
         <Toast message={toastMessage} onClose={() => setToastMessage("")} />
       )}

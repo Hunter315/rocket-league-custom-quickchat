@@ -25,30 +25,7 @@ h1 {
   text-align: center;
 }
 
-.tabs {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
-}
 
-.tab-button {
-  background: #40444B;
-  color: #FFFFFF;
-  border: none;
-  padding: 10px 20px;
-  cursor: pointer;
-  transition: background 0.2s;
-  margin: 0 5px;
-  border-radius: 4px;
-}
-
-.tab-button.active {
-  background: #7289DA;
-}
-
-.tab-button:hover {
-  background: #5b6eae;
-}
 
 .quickchat-columns {
   display: flex;
@@ -316,56 +293,5 @@ button:focus {
 /* Add these styles to your existing CSS */
 /* Add these styles to your existing CSS */
 
-.tabs {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
-}
 
-.tab {
-  display: flex;
-  align-items: center;
-  margin-right: 10px;
-}
-
-.tab button {
-  background: #40444B;
-  color: #FFFFFF;
-  border: none;
-  padding: 10px 20px;
-  cursor: pointer;
-  transition: background 0.2s;
-  border-radius: 4px 0 0 4px;
-}
-
-.tab.active button {
-  background: #7289DA;
-}
-
-.tab button:hover {
-  background: #5b6eae;
-}
-
-.tab button:last-child {
-  background: #FF5252;
-  border-radius: 0 4px 4px 0;
-}
-
-.tab button:last-child:hover {
-  background: #ff4a4a;
-}
-
-.tabs button {
-  background: #40444B;
-  color: #FFFFFF;
-  border: none;
-  padding: 10px 20px;
-  cursor: pointer;
-  transition: background 0.2s;
-  border-radius: 4px;
-}
-
-.tabs button:hover {
-  background: #5b6eae;
-}
 
