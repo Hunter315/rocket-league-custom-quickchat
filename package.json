@@ -67,7 +67,7 @@
       "main.js",
       "preload.js",
       "my-addon/build/Release/**/*",
-      "Store.js"
+      "components/**/*"
     ],
     "win": {
       "target": "nsis",
