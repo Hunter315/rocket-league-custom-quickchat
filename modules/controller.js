@@ -1,8 +1,14 @@
 const HID = require("node-hid");
 const log = require("electron-log");
 
-function initializeController(ipcMain, store) {
+function initializeController(ipcMain, store, getCurrentTab) {
   let processing = false;
+  let currentTab = getCurrentTab();
+
+  ipcMain.on("current-tab-updated", (event, tabIndex) => {
+    currentTab = tabIndex;
+    log.info(`Controller updated to use tab: ${currentTab}`);
+  });
 
   const devices = HID.devices();
   log.info("Detected HID devices:", devices);
@@ -31,9 +37,10 @@ function initializeController(ipcMain, store) {
     }
 
     function handleQuickchat(inputs) {
-      const quickchatMap = store.get("quickchats");
+      const quickchatMap = store.get("quickchats")[currentTab]; // Use the dynamic current tab index
       const key = inputs.join(",");
-      const message = quickchatMap[key];
+      const message = quickchatMap ? quickchatMap[key] : null;
+      log.info(`Attempting to send quickchat: ${key} -> ${message}`);
       if (message) {
         ipcMain.emit("send-quickchat", null, message);
       }
@@ -103,4 +110,8 @@ function initializeController(ipcMain, store) {
   }
 }
 
-module.exports = { initializeController };
+function searchControllers() {
+  return HID.devices();
+}
+
+module.exports = { initializeController, searchControllers };

@@ -1,0 +1,56 @@
+.tabs {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  background-color: #2c2f33; /* Dark color for the top bar */
+  padding: 5px 5px 0 5px;
+  border-radius: 4px 4px 0 0;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  margin-right: 5px;
+  background-color: #2c2f33; /* Dark color for inactive tabs */
+  color: #ffffff;
+  border-radius: 4px 4px 0 0;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  min-height: 20px;
+}
+
+.tab.active {
+  background-color: #36393f; /* Slightly brighter color for active tab */
+  color: #ffffff;
+  border-bottom: none; /* Remove bottom border to blend into the page below */
+}
+
+.tab button {
+  background: none;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  margin-left: 10px;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.tab button:hover {
+  color: #ff5252; /* Change color on hover */
+}
+
+.tabs button {
+  background-color: #2c2f33;
+  color: #ffffff;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-radius: 4px;
+  margin-left: 5px;
+}
+
+.tabs button:hover {
+  background-color: #5b6eae; /* Brighter color on hover */
+}
