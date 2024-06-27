@@ -3,7 +3,6 @@ function initializeKeyboard(ipcMain, store) {
   const log = require("electron-log");
 
   ipcMain.on("send-quickchat", (event, message) => {
-    log.info("Sending quickchat:", message);
     const typingSpeed = store.get("typingSpeed");
     const delay = typingSpeed;
     const enterDelay = message.length * delay;
@@ -35,10 +34,11 @@ function initializeKeyboard(ipcMain, store) {
     pressKeyWithRetry("t");
     setTimeout(() => {
       keyboard.typeString(message, delay);
-      setTimeout(() => {
-        pressEnterWithRetry();
+      setTimeout(async () => {
+        await pressEnterWithRetry();
+        await ipcMain.emit("typing-complete");
         log.info("Quickchat sent");
-      }, enterDelay + 200);
+      }, enterDelay + 100);
     }, 5);
   });
 }

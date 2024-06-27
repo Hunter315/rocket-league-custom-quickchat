@@ -53,7 +53,6 @@ app.on("ready", async () => {
 
     // Emit the initial current-tab-updated event
     ipcMain.emit("current-tab-updated", null, currentTab);
-    log.info(`Initial tab set to: ${currentTab}`);
   } catch (e) {
     log.error("Error during app ready event: ", e);
   }
@@ -90,11 +89,7 @@ app.on("ready", async () => {
 
   ipcMain.on("update-current-tab", (event, tabIndex) => {
     currentTab = tabIndex;
-    log.info(`Current tab updated to: ${currentTab}`);
     BrowserWindow.getAllWindows().forEach((win) => {
-      log.info(
-        `Sending current-tab-updated event to window with tab: ${currentTab}`
-      );
       win.webContents.send("current-tab-updated", currentTab); // Notify all windows of the current tab change
     });
     ipcMain.emit("current-tab-updated", null, currentTab); // Ensure event is propagated to ipcMain listeners
