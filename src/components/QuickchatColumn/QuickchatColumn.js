@@ -3,6 +3,7 @@ import React from "react";
 const QuickchatColumn = ({
   colKey,
   column,
+  columns,
   handleChange,
   setCurrentInputValue,
   setCurrentKey,
@@ -18,7 +19,7 @@ const QuickchatColumn = ({
             return (
               <div key={key} className="quickchat">
                 <img
-                  src={column.icon}
+                  src={columns[key.split(",")[1]].icon}
                   alt={`D-pad ${key.split(",")[1]}`}
                   className="dpad-icon-small"
                 />

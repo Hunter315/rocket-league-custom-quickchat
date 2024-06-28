@@ -19,6 +19,7 @@ class Store {
 
   set(key, val) {
     this.data[key] = val;
+    console.log(key, val);
     fs.writeFileSync(this.path, JSON.stringify(this.data));
   }
 }

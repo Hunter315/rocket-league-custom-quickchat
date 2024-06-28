@@ -15,24 +15,27 @@ const Store = require("./modules/store");
 const store = new Store({
   configName: "user-preferences",
   defaults: {
-    quickchats: [
+    tabs: [
       {
-        "0,0": "Quickchat 1",
-        "0,2": "Quickchat 2",
-        "0,4": "Quickchat 3",
-        "0,6": "Quickchat 4",
-        "2,0": "Quickchat 5",
-        "2,2": "Quickchat 6",
-        "2,4": "Quickchat 7",
-        "2,6": "Quickchat 8",
-        "4,0": "Quickchat 9",
-        "4,2": "Quickchat 10",
-        "4,4": "Quickchat 11",
-        "4,6": "Quickchat 12",
-        "6,0": "Quickchat 13",
-        "6,2": "Quickchat 14",
-        "6,4": "Quickchat 15",
-        "6,6": "Quickchat 16",
+        name: "Tab 7",
+        quickchats: {
+          "0,0": "Quickchat 1",
+          "0,2": "Quickchat 2",
+          "0,4": "Quickchat 3",
+          "0,6": "Quickchat 4",
+          "2,0": "Quickchat 5",
+          "2,2": "Quickchat 6",
+          "2,4": "Quickchat 7",
+          "2,6": "Quickchat 8",
+          "4,0": "Quickchat 9",
+          "4,2": "Quickchat 10",
+          "4,4": "Quickchat 11",
+          "4,6": "Quickchat 12",
+          "6,0": "Quickchat 13",
+          "6,2": "Quickchat 14",
+          "6,4": "Quickchat 15",
+          "6,6": "Quickchat 16",
+        },
       },
     ],
     typingSpeed: 5,
@@ -57,15 +60,15 @@ app.on("ready", async () => {
     log.error("Error during app ready event: ", e);
   }
 
-  ipcMain.on("save-quickchats", (event, quickchats) => {
-    store.set("quickchats", quickchats);
+  ipcMain.on("save-quickchats", (event, tabs) => {
+    store.set("tabs", tabs);
     BrowserWindow.getAllWindows().forEach((win) => {
-      win.webContents.send("quickchats-updated", quickchats);
+      win.webContents.send("quickchats-updated", tabs);
     });
   });
 
   ipcMain.handle("load-quickchats", async () => {
-    return store.get("quickchats");
+    return store.get("tabs");
   });
 
   ipcMain.handle("load-settings", async () => {

@@ -1,7 +1,7 @@
 body {
-  font-family: 'Roboto', sans-serif;
-  background-color: #2C2F33;
-  color: #FFFFFF;
+  font-family: "Roboto", sans-serif;
+  background-color: #2c2f33;
+  color: #ffffff;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -11,7 +11,7 @@ body {
 
 .container {
   max-width: 1200px;
-  background: #36393F;
+  background: #36393f;
   padding: 20px;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
   border-radius: 8px;
@@ -21,11 +21,9 @@ body {
 h1 {
   font-size: 24px;
   margin-bottom: 20px;
-  color: #7289DA;
+  color: #7289da;
   text-align: center;
 }
-
-
 
 .quickchat-columns {
   display: flex;
@@ -76,10 +74,10 @@ h1 {
 
 .quickchat input {
   padding: 8px;
-  border: 1px solid #42454A;
+  border: 1px solid #42454a;
   border-radius: 4px;
-  background-color: #40444B;
-  color: #FFFFFF;
+  background-color: #40444b;
+  color: #ffffff;
   transition: border-color 0.2s, box-shadow 0.2s, width 0.3s, height 0.3s;
   width: 100%;
   box-sizing: border-box;
@@ -89,7 +87,7 @@ h1 {
 }
 
 .quickchat input:focus {
-  border-color: #7289DA;
+  border-color: #7289da;
   box-shadow: 0 0 8px rgba(114, 137, 218, 0.5);
   outline: none;
   height: auto;
@@ -111,8 +109,8 @@ h1 {
 }
 
 button {
-  background-color: #7289DA;
-  color: #FFFFFF;
+  background-color: #7289da;
+  color: #ffffff;
   border: none;
   padding: 10px 20px;
   border-radius: 4px;
@@ -135,11 +133,11 @@ button:focus {
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
-  background-color: #2C2F33;
+  background-color: #2c2f33;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #7289DA;
+  background-color: #7289da;
   border-radius: 4px;
   opacity: 0;
   transition: opacity 0.2s;
@@ -162,7 +160,7 @@ button:focus {
 
 .ReactModal__Content {
   color: #fff;
-  background-color: #2C2F33 !important;
+  background-color: #2c2f33 !important;
   border: none;
   border-radius: 10px;
   padding: 20px;
@@ -173,7 +171,7 @@ button:focus {
 
 .ReactModal__Content--after-open {
   color: #fff;
-  background-color: #2C2F33 !important;
+  background-color: #2c2f33 !important;
   border: none !important;
   border-radius: 10px;
   padding: 20px;
@@ -197,7 +195,7 @@ button:focus {
 }
 
 .search-button {
-  background-color: #FF5252;
+  background-color: #ff5252;
   margin: 10px auto;
 }
 
@@ -206,7 +204,7 @@ button:focus {
 }
 
 .settings {
-  background-color: #2C2F33;
+  background-color: #2c2f33;
   border-radius: 10px;
   padding: 10px;
   margin: 10px auto;
@@ -217,10 +215,10 @@ button:focus {
 .speed-input {
   width: 46px;
   padding: 8px;
-  border: 1px solid #42454A;
+  border: 1px solid #42454a;
   border-radius: 4px;
-  background-color: #40444B;
-  color: #FFFFFF;
+  background-color: #40444b;
+  color: #ffffff;
   transition: border-color 0.2s, box-shadow 0.2s;
   text-align: center;
 }
@@ -246,7 +244,7 @@ button:focus {
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
   width: 400px;
   max-width: 90%;
-  color: #FFFFFF;
+  color: #ffffff;
   display: flex;
   flex-flow: column;
   align-items: center;
@@ -261,18 +259,17 @@ button:focus {
 }
 
 .input-modal textarea {
-  background-color: #40444B;
-  color: #FFFFFF;
-  border: 1px solid #42454A;
+  background-color: #40444b;
+  color: #ffffff;
+  border: 1px solid #42454a;
   border-radius: 4px;
   padding: 8px;
   width: 96%;
 }
 
-
 .input-modal button {
-  background-color: #7289DA;
-  color: #FFFFFF;
+  background-color: #7289da;
+  color: #ffffff;
   border: none;
   padding: 10px 20px;
   border-radius: 4px;
@@ -292,6 +289,3 @@ button:focus {
 
 /* Add these styles to your existing CSS */
 /* Add these styles to your existing CSS */
-
-
-

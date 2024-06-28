@@ -7,19 +7,17 @@ function initializeController(ipcMain, store, getCurrentTab) {
 
   ipcMain.on("current-tab-updated", (event, tabIndex) => {
     currentTab = tabIndex;
-    log.info(`Controller updated to use tab: ${currentTab}`);
   });
 
   ipcMain.on("typing-complete", async () => {
-    await resetInputs();
+    console.log("reset inputs");
+    resetInputs();
     setTimeout(() => {
       processing = false;
     }, 100);
-    log.info("Typing complete, processing set to false");
   });
 
   const devices = HID.devices();
-  log.info("Detected HID devices:", devices);
 
   const ps4Controller = devices.find(
     (d) => d.vendorId === 1356 && d.productId === 3302
@@ -34,6 +32,7 @@ function initializeController(ipcMain, store, getCurrentTab) {
     let inputTimeout;
 
     function resetInputs() {
+      console.log("reset inputs");
       thumbstickPressed = false;
       dpadInputs = [];
       lastDpadState = 8;
@@ -44,7 +43,8 @@ function initializeController(ipcMain, store, getCurrentTab) {
     }
 
     function handleQuickchat(inputs) {
-      const quickchatMap = store.get("quickchats")[currentTab]; // Use the dynamic current tab index
+      const quickchatMap = store.get("tabs")[currentTab]["quickchats"]; // Use the dynamic current tab index
+      console.log(quickchatMap);
       const key = inputs.join(",");
       const message = quickchatMap ? quickchatMap[key] : null;
       if (message) {
@@ -88,18 +88,25 @@ function initializeController(ipcMain, store, getCurrentTab) {
           lastDpadState = 8;
         }
       } else if (activationMethod === "dpad") {
-        if (dpad !== 8) {
-          if (lastDpadState === 8) {
-            dpadInputs.push(dpad);
-            lastDpadState = dpad;
-            log.info("D-pad input:", dpadInputs);
-            if (dpadInputs.length === 2) {
+        if (
+          dpad !== 8 &&
+          (dpadInputs.length === 0 || lastDpadState === 8) &&
+          [0, 2, 4, 6].includes(dpad)
+        ) {
+          dpadInputs.push(dpad);
+          lastDpadState = dpad;
+          log.info("D-pad input:", dpadInputs);
+          if (dpadInputs.length === 1) {
+            inputTimeout = setTimeout(() => {
+              processing = true;
               handleQuickchat(dpadInputs);
-            }
+            }, 3000);
+          } else if (dpadInputs.length === 2) {
+            processing = true;
+            handleQuickchat(dpadInputs);
           }
-        } else {
-          lastDpadState = 8; // Reset state when D-pad returns to neutral
         }
+        lastDpadState = dpad;
       }
     });
 

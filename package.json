@@ -1,6 +1,6 @@
 {
   "name": "rocket-league-quickchat",
-  "version": "1.0.0",
+  "version": "1.0.13",
   "description": "A quickchat manager for Rocket League",
   "main": "main.js",
   "scripts": {
@@ -12,7 +12,6 @@
     "dist": "npm run clean && npm run build-addon && npm run build && electron-builder",
     "publish": "electron-builder --win -p always",
     "postinstall": "electron-builder install-app-deps"
-
   },
   "author": "Hunter Smith",
   "license": "MIT",

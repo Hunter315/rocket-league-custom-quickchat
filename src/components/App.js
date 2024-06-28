@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Modal from "react-modal";
 import { QuickchatColumn } from "./QuickchatColumn";
 import { QuickchatModal } from "./QuickchatModal";
 import { ControllerModal } from "./Controller";
@@ -13,7 +12,7 @@ import dpadLeft from "../assets/icons/dpad-left.svg";
 import "../index.css";
 
 const App = () => {
-  const [quickchatsStore, setQuickchatsStore] = useState([]);
+  const [tabsStore, setTabsStore] = useState([]);
   const [loading, setLoading] = useState(true);
   const [typingSpeed, setTypingSpeed] = useState(5);
   const [controllers, setControllers] = useState([]);
@@ -31,13 +30,10 @@ const App = () => {
     window.electron
       .loadQuickchats()
       .then((data) => {
-        console.log("Loaded quickchats data:", data);
         if (Array.isArray(data)) {
-          setQuickchatsStore(data);
-        } else if (data.quickchats && Array.isArray(data.quickchats)) {
-          setQuickchatsStore(data.quickchats);
+          setTabsStore(data);
         } else {
-          setQuickchatsStore([{}]); // default initialization
+          setTabsStore([{ name: "Tab 1", quickchats: {} }]); // default initialization
         }
       })
       .finally(() => setLoading(false));
@@ -70,24 +66,20 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    console.log("Current tab updated to:", currentTab);
     window.electron.send("update-current-tab", currentTab);
   }, [currentTab]);
 
   const handleChange = (key, value) => {
     console.log("handleChange called with key:", key, "value:", value);
-    setQuickchatsStore((prevStore) => {
+    setTabsStore((prevStore) => {
       const updatedStore = [...prevStore];
-      updatedStore[currentTab][key] = value;
-      console.log("Updated quickchatsStore in handleChange:", updatedStore);
+      updatedStore[currentTab].quickchats[key] = value;
       return updatedStore;
     });
   };
 
   const handleSave = () => {
-    console.log("handleSave called with quickchatsStore:", quickchatsStore);
-    const saveQuickchatsPromise =
-      window.electron.saveQuickchats(quickchatsStore);
+    const saveQuickchatsPromise = window.electron.saveQuickchats(tabsStore);
     const saveSettingsPromise = window.electron.saveSettings({
       typingSpeed,
       selectedController,
@@ -97,10 +89,10 @@ const App = () => {
     Promise.all([saveQuickchatsPromise, saveSettingsPromise])
       .then(() => {
         console.log("Save successful");
+
         setToastMessage("Settings and Quickchats saved successfully!");
       })
       .catch((error) => {
-        console.error("Error saving settings or quickchats:", error);
         setToastMessage("Failed to save settings and quickchats.");
       });
   };
@@ -122,43 +114,52 @@ const App = () => {
 
   const handleAddTab = () => {
     const newTab = {
-      "0,0": "",
-      "0,2": "",
-      "0,4": "",
-      "0,6": "",
-      "2,0": "",
-      "2,2": "",
-      "2,4": "",
-      "2,6": "",
-      "4,0": "",
-      "4,2": "",
-      "4,4": "",
-      "4,6": "",
-      "6,0": "",
-      "6,2": "",
-      "6,4": "",
-      "6,6": "",
+      name: `Tab ${tabsStore.length + 1}`,
+      quickchats: {
+        "0,0": "",
+        "0,2": "",
+        "0,4": "",
+        "0,6": "",
+        "2,0": "",
+        "2,2": "",
+        "2,4": "",
+        "2,6": "",
+        "4,0": "",
+        "4,2": "",
+        "4,4": "",
+        "4,6": "",
+        "6,0": "",
+        "6,2": "",
+        "6,4": "",
+        "6,6": "",
+      },
     };
 
-    setQuickchatsStore((prevStore) => {
+    setTabsStore((prevStore) => {
       const newStore = [...prevStore, newTab];
-      console.log("New Store after adding tab:", newStore);
       return newStore;
     });
 
-    setCurrentTab(quickchatsStore.length); // Set to the new tab
-    window.electron.send("update-current-tab", quickchatsStore.length); // Update the current tab in main process
+    setCurrentTab(tabsStore.length); // Set to the new tab
+    window.electron.send("update-current-tab", tabsStore.length); // Update the current tab in main process
   };
 
   const handleDeleteTab = (tabIndex) => {
     if (tabIndex === 0) return; // Don't delete the default tab
-    setQuickchatsStore((prevStore) => {
+    setTabsStore((prevStore) => {
       const updatedStore = prevStore.filter((_, index) => index !== tabIndex);
-      console.log("New Store after deleting tab:", updatedStore);
       return updatedStore;
     });
     setCurrentTab(0); // Set to the default tab
     window.electron.send("update-current-tab", 0); // Update the current tab in main process
+  };
+
+  const handleTabNameChange = (index, newName) => {
+    setTabsStore((prevStore) => {
+      const updatedStore = [...prevStore];
+      updatedStore[index].name = newName;
+      return updatedStore;
+    });
   };
 
   if (loading) {
@@ -172,8 +173,7 @@ const App = () => {
     6: { icon: dpadLeft, chats: [] },
   };
 
-  const activeQuickchats = quickchatsStore[currentTab] || {};
-  console.log("Active Quickchats:", activeQuickchats);
+  const activeQuickchats = tabsStore[currentTab]?.quickchats || {};
 
   return (
     <div className="container">
@@ -181,13 +181,13 @@ const App = () => {
       <Tabs
         currentTab={currentTab}
         setCurrentTab={(tab) => {
-          console.log("Tab switched to:", tab);
           setCurrentTab(tab);
           window.electron.send("update-current-tab", tab); // Update the current tab in main process
         }}
-        quickchatsStore={quickchatsStore}
+        quickchatsStore={tabsStore}
         handleAddTab={handleAddTab}
         handleDeleteTab={handleDeleteTab}
+        handleTabNameChange={handleTabNameChange}
       />
       <div className="quickchat-columns">
         <QuickchatModal
@@ -202,6 +202,7 @@ const App = () => {
           <QuickchatColumn
             key={colKey}
             colKey={colKey}
+            columns={columns}
             column={columns[colKey]}
             handleChange={handleChange}
             setCurrentInputValue={setCurrentInputValue}

@@ -36,7 +36,29 @@ t(Potential) Smurf Alert!
 tSQUISHY MUFFINtSQUISHY MUFFINtI just spilled my Sprite
 
 tI just spilled my SpritetWHAT. A. HERO.ASDF
+tHow many times do we have to teach you this lesson, old man?
+
+tI just spilled my SpritetAw, you cheesed inputTimeouttHow many times do we have to teach you this lesson, old man?
 
 
 
-
+ {
+      "name": "Tab 1",
+      "quickchats": {
+        "0,0": "Aw, you cheesed it",
+        "0,2": "No, this is Patrick!",
+        "0,4": "(Potential) Smurf Alert!",
+        "0,6": "Is this the Krusty Krab?",
+        "2,0": "I missed my Zumba class for this?!",
+        "2,2": "How many times do we have to teach you this lesson, old man?",
+        "2,4": "I just spilled my Sprite",
+        "2,6": "How embarrassing",
+        "4,0": "Oh not again now",
+        "4,2": "I'm just better than you",
+        "4,4": "WHAT. A. HERO.ASDF",
+        "4,6": "But why smurf tho",
+        "6,0": "cool man. hope you feel good about yourself",
+        "6,2": "I can't believe you've done this.",
+        "6,4": "WHIFF",
+        "6,6": "SQUISHY MUFFIN"
+      }

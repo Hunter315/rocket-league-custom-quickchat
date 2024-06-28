@@ -34,9 +34,9 @@ function initializeKeyboard(ipcMain, store) {
     pressKeyWithRetry("t");
     setTimeout(() => {
       keyboard.typeString(message, delay);
-      setTimeout(async () => {
-        await pressEnterWithRetry();
-        await ipcMain.emit("typing-complete");
+      setTimeout(() => {
+        pressEnterWithRetry();
+        ipcMain.emit("typing-complete");
         log.info("Quickchat sent");
       }, enterDelay + 100);
     }, 5);
