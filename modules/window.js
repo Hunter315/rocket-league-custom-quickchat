@@ -15,7 +15,7 @@ function createWindow() {
         enableRemoteModule: false,
         nodeIntegration: false,
       },
-      icon: path.join(__dirname, "..src//assets/icons/app-icon.png"),
+      icon: path.join(__dirname, "../src/assets/icons/app-icon2.png"),
     });
 
     const startUrl = path.join(__dirname, "../dist/index.html");

@@ -1,6 +1,6 @@
 {
   "name": "rocket-league-quickchat",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "A quickchat manager for Rocket League",
   "main": "main.js",
   "scripts": {
@@ -70,15 +70,15 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": "src/assets/icons/app-icon.png"
+      "icon": "src/assets/icons/app-icon2.png"
     },
     "mac": {
       "target": "dmg",
-      "icon": "src/assets/icons/app-icon.png"
+      "icon": "src/assets/icons/app-icon2.png"
     },
     "linux": {
       "target": "AppImage",
-      "icon": "src/assets/icons/app-icon.png"
+      "icon": "src/assets/icons/app-icon2.png"
     },
     "publish": {
       "provider": "github",

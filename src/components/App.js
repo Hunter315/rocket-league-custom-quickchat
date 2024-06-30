@@ -39,7 +39,10 @@ const App = () => {
       .finally(() => setLoading(false));
 
     window.electron.loadSettings().then((settings) => {
-      setTypingSpeed(settings.typingSpeed || 5);
+      console.log("SETTINGS: ", settings.typingSpeed);
+      setTypingSpeed(
+        settings.typingSpeed !== undefined ? settings.typingSpeed : 3
+      );
       setSelectedController(settings.selectedController || null);
       setActivationMethod(settings.activationMethod || "thumbstick");
     });

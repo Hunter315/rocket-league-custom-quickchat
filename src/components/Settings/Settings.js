@@ -8,6 +8,7 @@ const Settings = ({
   handleSearchControllers,
   selectedController,
 }) => {
+  console.log("typing speed in Settings.js: ", typingSpeed);
   return (
     <div className="settings">
       <button className="search-button" onClick={handleSearchControllers}>

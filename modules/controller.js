@@ -11,10 +11,7 @@ function initializeController(ipcMain, store, getCurrentTab) {
 
   ipcMain.on("typing-complete", async () => {
     console.log("reset inputs");
-    resetInputs();
-    setTimeout(() => {
-      processing = false;
-    }, 100);
+    await resetInputs();
   });
 
   const devices = HID.devices();
@@ -32,7 +29,6 @@ function initializeController(ipcMain, store, getCurrentTab) {
     let inputTimeout;
 
     function resetInputs() {
-      console.log("reset inputs");
       thumbstickPressed = false;
       dpadInputs = [];
       lastDpadState = 8;
@@ -40,17 +36,27 @@ function initializeController(ipcMain, store, getCurrentTab) {
         clearTimeout(inputTimeout);
         inputTimeout = null;
       }
+      console.log("reset inputs");
+      console.log("rest inputs: ", dpadInputs);
+      console.log(processing);
+      // processing = false;
+
+      setTimeout(() => {
+        processing = false;
+        console.log("timeout process", processing);
+      }, 200);
     }
 
     function handleQuickchat(inputs) {
       const quickchatMap = store.get("tabs")[currentTab]["quickchats"]; // Use the dynamic current tab index
-      console.log(quickchatMap);
       const key = inputs.join(",");
       const message = quickchatMap ? quickchatMap[key] : null;
       if (message) {
         ipcMain.emit("send-quickchat", null, message);
         log.info(`Sending quickchat: ${message}`);
         processing = true;
+      } else {
+        resetInputs();
       }
     }
 
@@ -88,25 +94,29 @@ function initializeController(ipcMain, store, getCurrentTab) {
           lastDpadState = 8;
         }
       } else if (activationMethod === "dpad") {
-        if (
-          dpad !== 8 &&
-          (dpadInputs.length === 0 || lastDpadState === 8) &&
-          [0, 2, 4, 6].includes(dpad)
-        ) {
-          dpadInputs.push(dpad);
-          lastDpadState = dpad;
-          log.info("D-pad input:", dpadInputs);
-          if (dpadInputs.length === 1) {
-            inputTimeout = setTimeout(() => {
+        try {
+          if (
+            dpad !== 8 &&
+            (dpadInputs.length === 0 || lastDpadState === 8) &&
+            [0, 2, 4, 6].includes(dpad)
+          ) {
+            dpadInputs.push(dpad);
+            lastDpadState = dpad;
+            log.info("D-pad input:", dpadInputs);
+            if (dpadInputs.length === 1) {
+              inputTimeout = setTimeout(() => {
+                processing = true;
+                handleQuickchat(dpadInputs);
+              }, 2000);
+            } else if (dpadInputs.length === 2) {
               processing = true;
               handleQuickchat(dpadInputs);
-            }, 3000);
-          } else if (dpadInputs.length === 2) {
-            processing = true;
-            handleQuickchat(dpadInputs);
+            }
           }
+          lastDpadState = dpad;
+        } catch (error) {
+          console.log(error);
         }
-        lastDpadState = dpad;
       }
     });
 
