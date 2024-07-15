@@ -14,6 +14,7 @@ const App = () => {
   const [tabsStore, setTabsStore] = useState([]);
   const [loading, setLoading] = useState(true);
   const [typingSpeed, setTypingSpeed] = useState(5);
+  const [tSpeed, setTSpeed] = useState(10);
   const [controllers, setControllers] = useState([]);
   const [selectedController, setSelectedController] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -54,6 +55,7 @@ const App = () => {
       setTypingSpeed(
         settings.typingSpeed !== undefined ? settings.typingSpeed : 2000
       );
+      setTSpeed(settings.tSpeed !== undefined ? settings.tSpeed : 10);
       setSelectedController(settings.selectedController || null);
       setActivationMethod(settings.activationMethod || "thumbstick");
     });
@@ -103,6 +105,7 @@ const App = () => {
   const handleSave = () => {
     const saveQuickchatsPromise = window.electron.saveQuickchats(tabsStore);
     const saveSettingsPromise = window.electron.saveSettings({
+      tSpeed,
       typingSpeed,
       selectedController,
       activationMethod,
@@ -230,6 +233,8 @@ const App = () => {
         )}
       </div>
       <Settings
+        tSpeed={tSpeed}
+        setTSpeed={setTSpeed}
         typingSpeed={typingSpeed}
         setTypingSpeed={setTypingSpeed}
         activationMethod={activationMethod}

@@ -2,6 +2,8 @@ import React from "react";
 import "./Settings.css";
 
 const Settings = ({
+  tSpeed,
+  setTSpeed,
   typingSpeed,
   setTypingSpeed,
   activationMethod,
@@ -22,6 +24,19 @@ const Settings = ({
             min="0"
           />
           <p className="subscript">microseconds per character</p>
+        </div>
+      </label>
+      <label className="label-search">
+        Open Text Box Delay
+        <div className="value-container">
+          <input
+            type="number"
+            className="value-input"
+            value={tSpeed}
+            onChange={(e) => setTSpeed(parseInt(e.target.value, 10))}
+            min="0"
+          />
+          <p className="subscript">milliseconds</p>
         </div>
       </label>
       <label className="label-search">

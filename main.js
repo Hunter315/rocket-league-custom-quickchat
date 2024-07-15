@@ -38,6 +38,7 @@ const store = new Store({
         },
       },
     ],
+    tSpeed: 10,
     typingSpeed: 5,
     selectedController: null,
     activationMethod: "thumbstick",
@@ -74,6 +75,7 @@ app.on("ready", async () => {
 
   ipcMain.handle("load-settings", async () => {
     return {
+      tSpeed: store.get("tSpeed"),
       typingSpeed: store.get("typingSpeed"),
       selectedController: store.get("selectedController"),
       activationMethod: store.get("activationMethod"),
@@ -81,6 +83,7 @@ app.on("ready", async () => {
   });
 
   ipcMain.on("save-settings", (event, settings) => {
+    store.set("tSpeed", settings.tSpeed);
     store.set("typingSpeed", settings.typingSpeed);
     store.set("selectedController", settings.selectedController);
     store.set("activationMethod", settings.activationMethod);
