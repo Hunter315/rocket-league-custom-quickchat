@@ -1,6 +1,6 @@
 {
   "name": "rocket-league-quickchat",
-  "version": "1.0.14",
+  "version": "1.1.0",
   "description": "A quickchat manager for Rocket League",
   "main": "main.js",
   "scripts": {
