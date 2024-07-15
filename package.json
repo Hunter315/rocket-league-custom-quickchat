@@ -8,10 +8,11 @@
     "start": "webpack serve --mode development",
     "build": "webpack --mode production",
     "electron": "electron .",
-    "build-addon": "cd ./my-addon && node-gyp configure && node-gyp build",
+    "build-addon": "cd ./my-addon && node-gyp clean && node-gyp configure && node-gyp build",
     "dist": "npm run clean && npm run build-addon && npm run build && electron-builder",
     "publish": "electron-builder --win -p always",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "electron-builder install-app-deps",
+    "dev": "npm run build && npm run electron"
   },
   "author": "Hunter Smith",
   "license": "MIT",

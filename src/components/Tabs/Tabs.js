@@ -34,7 +34,9 @@ const Tabs = ({
       {quickchatsStore.map((tab, index) => (
         <div
           key={index}
-          className={`tab ${index === currentTab ? "active" : ""}`}
+          className={`tab ${index === currentTab ? "active" : ""} ${
+            menuIndex === index ? "expanded" : ""
+          }`}
           onClick={() => setCurrentTab(index)}
         >
           {editingIndex === index ? (
@@ -74,20 +76,22 @@ const Tabs = ({
                   handleToggleMenu(index);
                 }}
               >
-                &#x22EE; {/* Three-dot icon */}
+                {menuIndex === index ? "✕" : "⋮"} {/* Three-dot or X icon */}
               </button>
               {menuIndex === index && (
                 <div className="menu">
                   <button
+                    className="menu-item"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleEdit(index, tab.name);
                     }}
                   >
-                    Edit
+                    Rename
                   </button>
                   {index !== 0 && (
                     <button
+                      className="menu-item delete-button"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDeleteTab(index);

@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import checkMark from "../../assets/icons/check-mark.svg";
 import "./Toast.css";
 
 const Toast = ({ message, onClose, duration = 3000 }) => {
@@ -12,7 +13,7 @@ const Toast = ({ message, onClose, duration = 3000 }) => {
 
   return (
     <div className="toast">
-      <p>{message}</p>
+      <img src={checkMark} alt="Success" className="check-mark" />
     </div>
   );
 };

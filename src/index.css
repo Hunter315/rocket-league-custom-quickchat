@@ -72,7 +72,7 @@ h1 {
   animation: glow 0.5s ease-in-out, pop 0.5s ease-in-out;
 }
 
-.quickchat input {
+.quickchat textarea {
   padding: 8px;
   border: 1px solid #42454a;
   border-radius: 4px;
@@ -86,7 +86,7 @@ h1 {
   text-overflow: ellipsis;
 }
 
-.quickchat input:focus {
+.quickchat textarea:focus {
   border-color: #7289da;
   box-shadow: 0 0 8px rgba(114, 137, 218, 0.5);
   outline: none;
@@ -191,7 +191,8 @@ button:focus {
 .label-search {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: end;
+  margin: 5px;
 }
 
 .search-button {
@@ -210,17 +211,6 @@ button:focus {
   margin: 10px auto;
   display: flex;
   flex-flow: column;
-}
-
-.speed-input {
-  width: 46px;
-  padding: 8px;
-  border: 1px solid #42454a;
-  border-radius: 4px;
-  background-color: #40444b;
-  color: #ffffff;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  text-align: center;
 }
 
 .controller-summary:hover {
@@ -285,6 +275,26 @@ button:focus {
 
 .input-modal button:first-of-type {
   margin-right: 10px;
+}
+
+.input-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.char-counter {
+  position: absolute;
+  bottom: 0px;
+  right: 2px;
+  font-size: 8px;
+  color: #9b8c79;
+}
+
+textarea {
+  box-sizing: border-box;
+  padding-right: 50px; /* Ensure space for the counter */
 }
 
 /* Add these styles to your existing CSS */

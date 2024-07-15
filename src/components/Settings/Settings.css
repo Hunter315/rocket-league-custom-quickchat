@@ -1,0 +1,77 @@
+.value-control {
+  width: var(--control-size);
+  height: var(--control-size);
+  margin: 0 8px;
+  border: var(--border);
+  border-radius: var(--border-radius);
+  background-color: #40444b;
+
+  color: #ffffff;
+  cursor: pointer;
+  font-size: var(--font-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.value-control:hover {
+  background: #eee;
+  color: #40444b;
+}
+.subscript {
+  font-size: 9px;
+  margin: 0 0 0 2px;
+}
+.value-control:active {
+  background: #ddd;
+}
+
+.value-control:focus,
+.value-input:focus {
+  outline: 2px solid #3e67fd;
+  outline-offset: 1px;
+}
+
+.value-input {
+  width: 46px;
+  padding: 8px 8px 1px 8px;
+  border: 1px solid #42454a;
+  border-radius: 4px;
+  background-color: #40444b;
+  color: #ffffff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  text-align: center;
+}
+
+.active-select {
+  width: 100px;
+  padding: 8px;
+  border: 1px solid #42454a;
+  border-radius: 4px;
+  background-color: #40444b;
+  color: #ffffff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  text-align: center;
+
+  margin-left: 5px;
+}
+
+.value-input:hover {
+  border-color: #777;
+}
+
+.value-input::-webkit-outer-spin-button,
+.value-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.value-input {
+  -moz-appearance: textfield;
+}
+
+.value-container {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 5px;
+}

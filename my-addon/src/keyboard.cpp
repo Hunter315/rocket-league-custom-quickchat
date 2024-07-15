@@ -60,14 +60,28 @@ void TypeString(const Napi::CallbackInfo &info)
 {
     Napi::Env env = info.Env();
     std::string str = info[0].As<Napi::String>();
-    int delay = info[1].As<Napi::Number>().Int32Value();
+    double delay = info[1].As<Napi::Number>().DoubleValue();
+
+    LARGE_INTEGER frequency, start, end;
+    QueryPerformanceFrequency(&frequency);
 
     for (char c : str)
     {
         bool shift = false;
         WORD key = GetVirtualKeyCode(c, shift);
-        PressKey(key, shift);
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+        if (key != 0) // Check if key is valid
+        {
+            PressKey(key, shift);
+
+            // High-resolution delay
+            QueryPerformanceCounter(&start);
+            double elapsed = 0;
+            while (elapsed < delay)
+            {
+                QueryPerformanceCounter(&end);
+                elapsed = static_cast<double>(end.QuadPart - start.QuadPart) * 1e6 / frequency.QuadPart;
+            }
+        }
     }
 }
 

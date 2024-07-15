@@ -4,6 +4,7 @@ const log = require("electron-log");
 function initializeController(ipcMain, store, getCurrentTab) {
   let processing = false;
   let currentTab = getCurrentTab();
+  let debounceTimeout = null;
 
   ipcMain.on("current-tab-updated", (event, tabIndex) => {
     currentTab = tabIndex;
@@ -36,7 +37,7 @@ function initializeController(ipcMain, store, getCurrentTab) {
         clearTimeout(inputTimeout);
         inputTimeout = null;
       }
-      console.log("reset inputs");
+
       console.log("rest inputs: ", dpadInputs);
       console.log(processing);
       // processing = false;
@@ -60,10 +61,44 @@ function initializeController(ipcMain, store, getCurrentTab) {
       }
     }
 
+    const activationMethod = store.get("activationMethod") || "dpad";
+
     device.on("data", (data) => {
       const dpad = data[8];
       const thumbstickClick = data[9];
-      const activationMethod = store.get("activationMethod");
+
+      const thumbstickX = data[3];
+
+      try {
+        if (
+          (thumbstickClick === 64 || thumbstickClick === 72) &&
+          !debounceTimeout
+        ) {
+          if (thumbstickX < 30) {
+            // move tab left
+            ipcMain.emit("change-tab", "left");
+            console.log("Change tab left");
+            debounceTimeout = setTimeout(() => {
+              debounceTimeout = null;
+            }, 500); // Adjust debounce timeout as needed
+          } else if (thumbstickX > 200) {
+            // move tab right
+            ipcMain.emit("change-tab", "right");
+            console.log("Change tab right");
+
+            debounceTimeout = setTimeout(() => {
+              debounceTimeout = null;
+            }, 500); // Adjust debounce timeout as needed
+          }
+        }
+      } catch (error) {
+        console.log(error);
+      }
+
+      if (thumbstickClick === 64 && thumbstickX >= 120 && thumbstickX <= 150) {
+        clearTimeout(debounceTimeout);
+        debounceTimeout = null;
+      }
 
       if (processing) return;
 

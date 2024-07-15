@@ -17,7 +17,7 @@ const store = new Store({
   defaults: {
     tabs: [
       {
-        name: "Tab 7",
+        name: "Tab 1",
         quickchats: {
           "0,0": "Quickchat 1",
           "0,2": "Quickchat 2",
@@ -41,6 +41,7 @@ const store = new Store({
     typingSpeed: 5,
     selectedController: null,
     activationMethod: "thumbstick",
+    currentTab: 0,
   },
 });
 
@@ -85,6 +86,12 @@ app.on("ready", async () => {
     store.set("activationMethod", settings.activationMethod);
   });
 
+  ipcMain.on("change-tab", (event) => {
+    BrowserWindow.getAllWindows().forEach((win) => {
+      win.webContents.send("change-tab", event);
+    });
+  });
+
   ipcMain.handle("search-controllers", async () => {
     const devices = searchControllers();
     return devices;
@@ -92,6 +99,7 @@ app.on("ready", async () => {
 
   ipcMain.on("update-current-tab", (event, tabIndex) => {
     currentTab = tabIndex;
+    store.set("currentTab", currentTab);
     BrowserWindow.getAllWindows().forEach((win) => {
       win.webContents.send("current-tab-updated", currentTab); // Notify all windows of the current tab change
     });
