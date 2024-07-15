@@ -33,7 +33,7 @@ const QuickchatColumn = ({
                     value={activeQuickchats[key]}
                     onChange={(e) => handleInputChange(key, e.target.value)}
                     onClick={() => setExpandedKey(key)}
-                    maxLength={120}
+                    maxLength={240}
                     style={{
                       width: "100%",
                       height: isExpanded ? "100px" : "30px",
@@ -43,7 +43,7 @@ const QuickchatColumn = ({
                     onBlur={() => setExpandedKey(null)}
                   />
                   <div className="char-counter">
-                    {activeQuickchats[key].length}/120
+                    {activeQuickchats[key].length}/240
                   </div>
                 </div>
               </div>

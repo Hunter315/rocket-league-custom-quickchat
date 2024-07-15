@@ -66,6 +66,7 @@ h1 {
 .quickchat {
   display: flex;
   margin-bottom: 10px;
+  z-index: 9999;
 }
 
 .quickchat.selected-item {
@@ -92,6 +93,7 @@ h1 {
   outline: none;
   height: auto;
   white-space: normal;
+  overflow-y: scroll !important;
 }
 
 .dpad-icon {
@@ -120,7 +122,9 @@ button {
   display: block;
   margin: 0 auto;
 }
-
+.save-button {
+  z-index: 999;
+}
 button:hover {
   background-color: #5b6eae;
 }

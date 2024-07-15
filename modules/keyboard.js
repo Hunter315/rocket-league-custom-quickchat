@@ -5,7 +5,7 @@ function initializeKeyboard(ipcMain, store) {
   ipcMain.on("send-quickchat", async (event, message) => {
     const typingSpeed = store.get("typingSpeed");
     const delay = typingSpeed;
-    const chunkSize = 1; // Define the chunk size, adjust based on testing
+    const chunkSize = 120; // Define the chunk size, adjust based on testing
 
     function pressKeyWithRetry(key, retries = 3) {
       return new Promise((resolve) => {
@@ -39,10 +39,14 @@ function initializeKeyboard(ipcMain, store) {
 
     async function typeMessageInChunks(message) {
       for (let i = 0; i < message.length; i += chunkSize) {
+        await pressKeyWithRetry("t");
+        await new Promise((resolve) => setTimeout(resolve, 10)); // Adjust the delay time as needed
+
         const chunk = message.slice(i, i + chunkSize);
-        console.log(delay);
         await keyboard.typeString(chunk, delay);
-        await new Promise((resolve) => setTimeout(resolve, 1)); // Wait for delay after each chunk
+        await pressEnterWithRetry();
+        await new Promise((resolve) => setTimeout(resolve, 10)); // Wait for delay after each chunk
+        ipcMain.emit("typing-complete");
       }
     }
 
@@ -54,15 +58,20 @@ function initializeKeyboard(ipcMain, store) {
       }
     }
 
-    await pressKeyWithRetry("t");
+    if (message.length > 120) {
+      await typeMessageInChunks(message);
+    } else {
+      await pressKeyWithRetry("t");
 
-    await new Promise((resolve) => setTimeout(resolve, 10)); // Adjust the delay time as needed
-    // await typeMessageInChunks(message);
-    await typeMessageWithoutChunks(message);
+      await new Promise((resolve) => setTimeout(resolve, 10)); // Adjust the delay time as needed
 
-    pressEnterWithRetry();
-    log.info("Quickchat sent: ", message);
-    ipcMain.emit("typing-complete");
+      // await typeMessageInChunks(message);
+      await typeMessageWithoutChunks(message);
+
+      pressEnterWithRetry();
+      log.info("Quickchat sent: ", message);
+      ipcMain.emit("typing-complete");
+    }
   });
 }
 
