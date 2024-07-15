@@ -1,4 +1,5 @@
 import React from "react";
+import "./Settings.css";
 
 const Settings = ({
   typingSpeed,
@@ -8,24 +9,25 @@ const Settings = ({
   handleSearchControllers,
   selectedController,
 }) => {
-  console.log("typing speed in Settings.js: ", typingSpeed);
   return (
     <div className="settings">
-      <button className="search-button" onClick={handleSearchControllers}>
-        Search for Controllers
-      </button>
       <label className="label-search">
-        Typing Speed (ms per character):
-        <input
-          type="number"
-          className="speed-input"
-          value={typingSpeed}
-          onChange={(e) => setTypingSpeed(parseInt(e.target.value, 10))}
-        />
+        Typing Speed:
+        <div className="value-container">
+          <input
+            type="number"
+            className="value-input"
+            value={typingSpeed}
+            onChange={(e) => setTypingSpeed(parseInt(e.target.value, 10))}
+            min="0"
+          />
+          <p className="subscript">microseconds per character</p>
+        </div>
       </label>
       <label className="label-search">
         Activation Method:
         <select
+          className="active-select"
           value={activationMethod}
           onChange={(e) => setActivationMethod(e.target.value)}
         >
@@ -33,6 +35,9 @@ const Settings = ({
           <option value="dpad">None</option>
         </select>
       </label>
+      <button className="search-button" onClick={handleSearchControllers}>
+        Search for Controllers
+      </button>
       {selectedController && (
         <div>
           <h3>

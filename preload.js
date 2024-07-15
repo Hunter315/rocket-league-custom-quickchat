@@ -11,6 +11,34 @@ contextBridge.exposeInMainWorld("electron", {
   onUpdateDownloaded: (callback) =>
     ipcRenderer.on("update-downloaded", callback),
   restartApp: () => ipcRenderer.send("restart-app"),
-  on: (channel, listener) => ipcRenderer.on(channel, listener),
-  send: (channel, data) => ipcRenderer.send(channel, data),
+  on: (channel, listener) => {
+    const validChannels = [
+      "send-quickchat",
+      "change-tab",
+      "update-current-tab",
+    ];
+    if (validChannels.includes(channel)) {
+      ipcRenderer.on(channel, listener);
+    }
+  },
+  removeListener: (channel, listener) => {
+    const validChannels = [
+      "send-quickchat",
+      "change-tab",
+      "update-current-tab",
+    ];
+    if (validChannels.includes(channel)) {
+      ipcRenderer.removeListener(channel, listener);
+    }
+  },
+  send: (channel, data) => {
+    const validChannels = [
+      "save-settings",
+      "load-settings",
+      "update-current-tab",
+    ];
+    if (validChannels.includes(channel)) {
+      ipcRenderer.send(channel, data);
+    }
+  },
 });

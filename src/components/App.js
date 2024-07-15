@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { QuickchatColumn } from "./QuickchatColumn";
-import { QuickchatModal } from "./QuickchatModal";
 import { ControllerModal } from "./Controller";
 import { Settings } from "./Settings";
 import { Tabs } from "./Tabs";
@@ -20,11 +19,24 @@ const App = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [expandedDevice, setExpandedDevice] = useState(null);
   const [activationMethod, setActivationMethod] = useState("thumbstick");
-  const [isInputModalOpen, setIsInputModalOpen] = useState(false);
-  const [currentInputValue, setCurrentInputValue] = useState("");
-  const [currentKey, setCurrentKey] = useState("");
   const [currentTab, setCurrentTab] = useState(0);
   const [toastMessage, setToastMessage] = useState("");
+
+  const handleChangeTabRef = useRef();
+
+  useEffect(() => {
+    handleChangeTabRef.current = (direction) => {
+      setCurrentTab((prevTab) => {
+        const tabsLength = tabsStore.length;
+        if (direction === "left") {
+          return prevTab === 0 ? tabsLength - 1 : prevTab - 1;
+        } else if (direction === "right") {
+          return prevTab === tabsLength - 1 ? 0 : prevTab + 1;
+        }
+        return prevTab;
+      });
+    };
+  }, [tabsStore]);
 
   useEffect(() => {
     window.electron
@@ -39,9 +51,8 @@ const App = () => {
       .finally(() => setLoading(false));
 
     window.electron.loadSettings().then((settings) => {
-      console.log("SETTINGS: ", settings.typingSpeed);
       setTypingSpeed(
-        settings.typingSpeed !== undefined ? settings.typingSpeed : 3
+        settings.typingSpeed !== undefined ? settings.typingSpeed : 2000
       );
       setSelectedController(settings.selectedController || null);
       setActivationMethod(settings.activationMethod || "thumbstick");
@@ -64,8 +75,17 @@ const App = () => {
       alert(`Quickchat: ${message}`); // Handle the quickchat message appropriately
     });
 
-    // Send the current tab index to the main process
-    window.electron.send("update-current-tab", currentTab);
+    const handleChangeTab = (event, direction) => {
+      if (handleChangeTabRef.current) {
+        handleChangeTabRef.current(direction);
+      }
+    };
+
+    window.electron.on("change-tab", handleChangeTab);
+
+    return () => {
+      window.electron.removeListener("change-tab", handleChangeTab);
+    };
   }, []);
 
   useEffect(() => {
@@ -73,7 +93,6 @@ const App = () => {
   }, [currentTab]);
 
   const handleChange = (key, value) => {
-    console.log("handleChange called with key:", key, "value:", value);
     setTabsStore((prevStore) => {
       const updatedStore = [...prevStore];
       updatedStore[currentTab].quickchats[key] = value;
@@ -91,11 +110,9 @@ const App = () => {
 
     Promise.all([saveQuickchatsPromise, saveSettingsPromise])
       .then(() => {
-        console.log("Save successful");
-
         setToastMessage("Settings and Quickchats saved successfully!");
       })
-      .catch((error) => {
+      .catch(() => {
         setToastMessage("Failed to save settings and quickchats.");
       });
   };
@@ -193,31 +210,25 @@ const App = () => {
         handleTabNameChange={handleTabNameChange}
       />
       <div className="quickchat-columns">
-        <QuickchatModal
-          isOpen={isInputModalOpen}
-          onRequestClose={() => setIsInputModalOpen(false)}
-          currentInputValue={currentInputValue}
-          setCurrentInputValue={setCurrentInputValue}
-          handleChange={handleChange}
-          currentKey={currentKey}
-        />
         {Object.keys(columns).map((colKey) => (
           <QuickchatColumn
             key={colKey}
             colKey={colKey}
-            columns={columns}
             column={columns[colKey]}
+            columns={columns}
             handleChange={handleChange}
-            setCurrentInputValue={setCurrentInputValue}
-            setCurrentKey={setCurrentKey}
-            setIsInputModalOpen={setIsInputModalOpen}
             activeQuickchats={activeQuickchats}
           />
         ))}
       </div>
-      <button id="save-button" onClick={handleSave}>
-        Save
-      </button>
+      <div className="save-toast">
+        <button id="save-button" onClick={handleSave}>
+          Save
+        </button>
+        {toastMessage && (
+          <Toast message={toastMessage} onClose={() => setToastMessage("")} />
+        )}
+      </div>
       <Settings
         typingSpeed={typingSpeed}
         setTypingSpeed={setTypingSpeed}
@@ -234,9 +245,6 @@ const App = () => {
         toggleDevice={toggleDevice}
         handleSelectController={handleSelectController}
       />
-      {toastMessage && (
-        <Toast message={toastMessage} onClose={() => setToastMessage("")} />
-      )}
     </div>
   );
 };

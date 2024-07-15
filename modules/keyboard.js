@@ -5,7 +5,7 @@ function initializeKeyboard(ipcMain, store) {
   ipcMain.on("send-quickchat", async (event, message) => {
     const typingSpeed = store.get("typingSpeed");
     const delay = typingSpeed;
-    const enterDelay = message.length * delay;
+    const chunkSize = 120; // Define the chunk size, adjust based on testing
 
     function pressKeyWithRetry(key, retries = 3) {
       return new Promise((resolve) => {
@@ -16,7 +16,10 @@ function initializeKeyboard(ipcMain, store) {
             resolve();
           } catch (error) {
             log.error(`Error pressing key: ${key}. Retrying...`);
-            setTimeout(() => pressKeyWithRetry(key, retries - 1), 50);
+            setTimeout(
+              () => pressKeyWithRetry(key, retries - 1).then(resolve),
+              50
+            );
           }
         }
       });
@@ -34,23 +37,41 @@ function initializeKeyboard(ipcMain, store) {
       }
     }
 
-    await pressKeyWithRetry("t");
+    async function typeMessageInChunks(message) {
+      for (let i = 0; i < message.length; i += chunkSize) {
+        await pressKeyWithRetry("t");
+        await new Promise((resolve) => setTimeout(resolve, 10)); // Adjust the delay time as needed
 
-    await keyboard.typeString(message, delay);
+        const chunk = message.slice(i, i + chunkSize);
+        await keyboard.typeString(chunk, delay);
+        await pressEnterWithRetry();
+        await new Promise((resolve) => setTimeout(resolve, 10)); // Wait for delay after each chunk
+        ipcMain.emit("typing-complete");
+      }
+    }
 
-    await pressEnterWithRetry();
-    log.info("Quickchat sent: ", message);
-    await ipcMain.emit("typing-complete");
+    async function typeMessageWithoutChunks(message) {
+      try {
+        await keyboard.typeString(message, delay);
+      } catch (error) {
+        log.error("Error typing message: ", error);
+      }
+    }
 
-    // pressKeyWithRetry("t");
-    // setTimeout(() => {
-    //   keyboard.typeString(message, delay);
-    //   setTimeout(() => {
-    //     pressEnterWithRetry();
-    //     ipcMain.emit("typing-complete");
-    //     log.info("Quickchat sent");
-    //   }, enterDelay + 100);
-    // }, 5);
+    if (message.length > 120) {
+      await typeMessageInChunks(message);
+    } else {
+      await pressKeyWithRetry("t");
+
+      await new Promise((resolve) => setTimeout(resolve, 10)); // Adjust the delay time as needed
+
+      // await typeMessageInChunks(message);
+      await typeMessageWithoutChunks(message);
+
+      pressEnterWithRetry();
+      log.info("Quickchat sent: ", message);
+      ipcMain.emit("typing-complete");
+    }
   });
 }
 
