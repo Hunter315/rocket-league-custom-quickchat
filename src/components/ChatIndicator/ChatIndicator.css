@@ -1,0 +1,64 @@
+.round {
+  position: absolute;
+  width: 2em;
+  height: 2em;
+  border-radius: 1em;
+}
+
+.light {
+  background-color: #0000;
+  background-image: radial-gradient(#000, #030 55%, #0004 60%, #0000 70%),
+    linear-gradient(to right, #0005 30%, #fff4);
+  padding: 0;
+}
+
+.color {
+  background-image: radial-gradient(#0f0, #0f0 45%, #0000 50%);
+  filter: blur(0.05em);
+  box-shadow: 0 0 1em 2em #0f02, inset 0 0 1em 2em #0f02;
+  opacity: 0.8;
+  transition: 0.2s;
+  border: none;
+}
+
+.color.on {
+  background-image: radial-gradient(#0f0, #0f0 45%, #0000 50%);
+  box-shadow: 0 0 3em 1em #0f02, inset 0 0 1em 2em #0f02;
+  opacity: 0.9;
+}
+
+.color.off {
+  background: none; /* Remove background */
+  box-shadow: none; /* Remove blur */
+  opacity: 0; /* Fully transparent */
+}
+
+.glass {
+  background-image: radial-gradient(
+    circle at 45% 45%,
+    #fff0,
+    #fff2 5%,
+    #fff0 10%
+  ); /* Much smaller gradient */
+  box-shadow: none;
+}
+
+.glass.on {
+  background-image: radial-gradient(
+    circle at 45% 45%,
+    #fff0,
+    #fff2 5%,
+    #fff0 10%
+  ); /* Much smaller gradient */
+}
+
+.glass.off {
+  background: none; /* Remove background */
+}
+
+.right {
+  height: 30px;
+  margin-left: 2em;
+  position: absolute;
+  right: 26em;
+}

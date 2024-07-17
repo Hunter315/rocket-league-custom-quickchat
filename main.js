@@ -5,6 +5,7 @@ const path = require("path");
 const { createWindow } = require("./modules/window");
 const { initializeUpdater } = require("./modules/updater");
 const { initializeKeyboard } = require("./modules/keyboard");
+const { initializeGamepad } = require("./modules/workers/gamepad");
 const {
   initializeController,
   searchControllers,
@@ -54,8 +55,8 @@ app.on("ready", async () => {
     createWindow();
     initializeUpdater();
     initializeKeyboard(ipcMain, store);
-    initializeController(ipcMain, store, () => currentTab); // Pass a function to get the current tab
-
+    // initializeController(ipcMain, store, () => currentTab); // Pass a function to get the current tab
+    initializeGamepad(ipcMain, store, () => currentTab);
     // Emit the initial current-tab-updated event
     ipcMain.emit("current-tab-updated", null, currentTab);
   } catch (e) {
@@ -98,6 +99,12 @@ app.on("ready", async () => {
   ipcMain.handle("search-controllers", async () => {
     const devices = searchControllers();
     return devices;
+  });
+
+  ipcMain.on("chat-toggled", (toggleValue) => {
+    BrowserWindow.getAllWindows().forEach((win) => {
+      win.webContents.send("ui-chat-toggled", toggleValue);
+    });
   });
 
   ipcMain.on("update-current-tab", (event, tabIndex) => {

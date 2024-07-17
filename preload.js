@@ -16,6 +16,10 @@ contextBridge.exposeInMainWorld("electron", {
       "send-quickchat",
       "change-tab",
       "update-current-tab",
+      "gamepad-button-pressed",
+      "gamepad-axis-moved",
+      "ui-chat-toggled",
+      "chat-toggled",
     ];
     if (validChannels.includes(channel)) {
       ipcRenderer.on(channel, listener);
@@ -26,6 +30,10 @@ contextBridge.exposeInMainWorld("electron", {
       "send-quickchat",
       "change-tab",
       "update-current-tab",
+      "gamepad-button-pressed",
+      "gamepad-axis-moved",
+      "ui-chat-toggled",
+      "chat-toggled",
     ];
     if (validChannels.includes(channel)) {
       ipcRenderer.removeListener(channel, listener);
@@ -36,6 +44,10 @@ contextBridge.exposeInMainWorld("electron", {
       "save-settings",
       "load-settings",
       "update-current-tab",
+      "gamepad-button-pressed",
+      "gamepad-axis-moved",
+      "ui-chat-toggled",
+      "chat-toggled",
     ];
     if (validChannels.includes(channel)) {
       ipcRenderer.send(channel, data);
