@@ -24,6 +24,16 @@ h1 {
   color: #7289da;
   text-align: center;
 }
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1em;
+}
+
+.title {
+  flex-grow: 1;
+}
 
 .quickchat-columns {
   display: flex;

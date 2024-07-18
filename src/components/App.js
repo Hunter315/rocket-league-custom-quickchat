@@ -4,6 +4,7 @@ import { ControllerModal } from "./Controller";
 import { Settings } from "./Settings";
 import { Tabs } from "./Tabs";
 import { Toast } from "./Toast";
+import { ChatIndicator } from "./ChatIndicator";
 import dpadUp from "../assets/icons/dpad-up.svg";
 import dpadRight from "../assets/icons/dpad-right.svg";
 import dpadDown from "../assets/icons/dpad-down.svg";
@@ -22,6 +23,7 @@ const App = () => {
   const [activationMethod, setActivationMethod] = useState("thumbstick");
   const [currentTab, setCurrentTab] = useState(0);
   const [toastMessage, setToastMessage] = useState("");
+  const [chatEnabled, setChatEnabled] = useState(true);
 
   const handleChangeTabRef = useRef();
 
@@ -85,8 +87,18 @@ const App = () => {
 
     window.electron.on("change-tab", handleChangeTab);
 
+    const handleChatToggle = (event, chatEnabled) => {
+      console.log("HANDLE CHAT TOGGLE", chatEnabled);
+      setChatEnabled(chatEnabled);
+    };
+
+    window.electron.on("ui-chat-toggled", handleChatToggle);
+
+    console.log({ chatEnabled });
+
     return () => {
       window.electron.removeListener("change-tab", handleChangeTab);
+      // window.electron.removeListener("chat-toggled", handleChatToggle);
     };
   }, []);
 
@@ -191,16 +203,19 @@ const App = () => {
 
   const columns = {
     0: { icon: dpadUp, chats: [] },
+    6: { icon: dpadLeft, chats: [] },
     2: { icon: dpadRight, chats: [] },
     4: { icon: dpadDown, chats: [] },
-    6: { icon: dpadLeft, chats: [] },
   };
 
   const activeQuickchats = tabsStore[currentTab]?.quickchats || {};
 
   return (
     <div className="container">
-      <h1>Quickchat Manager</h1>
+      <div className="header">
+        <h1 className="title">Quickchat Manager</h1>
+        <ChatIndicator chatEnabled={chatEnabled} />
+      </div>
       <Tabs
         currentTab={currentTab}
         setCurrentTab={(tab) => {
@@ -224,6 +239,7 @@ const App = () => {
           />
         ))}
       </div>
+
       <div className="save-toast">
         <button id="save-button" onClick={handleSave}>
           Save
