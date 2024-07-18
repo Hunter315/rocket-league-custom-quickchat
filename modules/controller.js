@@ -1,5 +1,10 @@
 const HID = require("node-hid");
 const log = require("electron-log");
+const {
+  createOverlayWindow,
+  closeOverlayWindow,
+  updateOverlayContent,
+} = require("./overlay");
 
 function initializeController(ipcMain, store, getCurrentTab) {
   let processing = false;
@@ -8,6 +13,13 @@ function initializeController(ipcMain, store, getCurrentTab) {
   let typingInProgress = false;
   let controller = store.get("selectedController");
   let controllerType = null;
+  let inputTimeout;
+  let dpadInputs = [];
+  let lastDpadState = 8;
+  let leftJoy = null;
+  let rightJoyX = null;
+  let lastRightClickTime = 0;
+  let chatEnabled = true;
 
   ipcMain.on("current-tab-updated", (event, tabIndex) => {
     currentTab = tabIndex;
@@ -172,6 +184,7 @@ function initializeController(ipcMain, store, getCurrentTab) {
     }
 
     function handleQuickchat(inputs) {
+      closeOverlayWindow();
       const quickchatMap = store.get("tabs")[currentTab]["quickchats"]; // Use the dynamic current tab index
       const key = inputs.join(",");
       const message = quickchatMap ? quickchatMap[key] : null;
@@ -186,13 +199,35 @@ function initializeController(ipcMain, store, getCurrentTab) {
     }
 
     const activationMethod = store.get("activationMethod") || "dpad";
+    let lastRightClickTime = 0;
+    let thumbstickClicked = false;
 
     device.on("data", (data) => {
       if (typingInProgress) return;
       const dpad = data[8];
       const thumbstickClick = data[9];
       const thumbstickX = data[3];
+
       try {
+        const doubleClickThreshold = 300;
+
+        if (thumbstickClick === 128 || thumbstickClick === 136) {
+          if (!thumbstickClicked) {
+            // Only process if the thumbstick was not previously pressed
+            thumbstickClicked = true;
+            const currentTime = Date.now();
+            if (currentTime - lastRightClickTime < doubleClickThreshold) {
+              chatEnabled = !chatEnabled; // Toggle chat functionality
+              log.info(`Chat enabled?: ${chatEnabled}`);
+              lastRightClickTime = 0; // Reset to avoid triple click detection
+              ipcMain.emit("chat-toggled", chatEnabled); // Emit event
+            } else {
+              lastRightClickTime = currentTime;
+            }
+          }
+        } else if (thumbstickClick === 0 || thumbstickClick === 8) {
+          thumbstickClicked = false; // Reset the thumbstick pressed state when released
+        }
         if (
           (thumbstickClick === 64 || thumbstickClick === 72) &&
           !debounceTimeout
@@ -224,6 +259,7 @@ function initializeController(ipcMain, store, getCurrentTab) {
       }
 
       if (processing) return;
+      if (!chatEnabled) return;
 
       if (activationMethod === "thumbstick") {
         if (thumbstickClick === 128 || thumbstickClick === 136) {
@@ -262,6 +298,14 @@ function initializeController(ipcMain, store, getCurrentTab) {
             lastDpadState = dpad;
             log.info("D-pad input:", dpadInputs);
             if (dpadInputs.length === 1) {
+              const quickchatMap = store.get("tabs")[currentTab]["quickchats"];
+              const keyPrefix = dpadInputs[0];
+              const filteredQuickchats = Object.keys(quickchatMap)
+                .filter((key) => key.startsWith(`${keyPrefix},`))
+                .map((key) => ({ key, message: quickchatMap[key] }));
+
+              createOverlayWindow();
+              updateOverlayContent(filteredQuickchats);
               inputTimeout = setTimeout(() => {
                 processing = true;
                 handleQuickchat(dpadInputs);

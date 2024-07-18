@@ -56,8 +56,8 @@ app.on("ready", async () => {
     createWindow();
     initializeUpdater();
     initializeKeyboard(ipcMain, store);
-    // initializeController(ipcMain, store, () => currentTab); // Pass a function to get the current tab
-    initializeGamepad(ipcMain, store, () => currentTab);
+    initializeController(ipcMain, store, () => currentTab); // Pass a function to get the current tab
+    // initializeGamepad(ipcMain, store, () => currentTab);
     // Emit the initial current-tab-updated event
     ipcMain.emit("current-tab-updated", null, currentTab);
   } catch (e) {
