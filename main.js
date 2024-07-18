@@ -6,6 +6,7 @@ const { createWindow } = require("./modules/window");
 const { initializeUpdater } = require("./modules/updater");
 const { initializeKeyboard } = require("./modules/keyboard");
 const { initializeGamepad } = require("./modules/workers/gamepad");
+
 const {
   initializeController,
   searchControllers,

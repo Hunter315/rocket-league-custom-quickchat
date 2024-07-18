@@ -1,14 +1,21 @@
-const { BrowserWindow } = require("electron");
+const { BrowserWindow, screen } = require("electron");
 const path = require("path");
 const log = require("electron-log");
 
 function createWindow() {
   try {
     log.info("Creating window");
+    const displays = screen.getAllDisplays();
+    const secondaryDisplay = displays.length > 1 ? displays[1] : displays[0];
 
     let win = new BrowserWindow({
       width: 1200,
       height: 1000,
+      x: secondaryDisplay.bounds.x + 50,
+      y: secondaryDisplay.bounds.y + 50,
+      frame: true,
+      skipTaskbar: false,
+      hasShadow: true,
       webPreferences: {
         preload: path.join(__dirname, "../preload.js"),
         contextIsolation: true,

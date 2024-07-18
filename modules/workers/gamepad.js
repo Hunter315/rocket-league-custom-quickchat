@@ -1,6 +1,12 @@
 const { ipcMain } = require("electron");
 const log = require("electron-log");
 
+const {
+  createOverlayWindow,
+  closeOverlayWindow,
+  updateOverlayContent,
+} = require("../overlay");
+
 function initializeGamepad(ipcMain, store, getCurrentTab) {
   let processing = false;
   let currentTab = getCurrentTab();
@@ -63,6 +69,7 @@ function initializeGamepad(ipcMain, store, getCurrentTab) {
   // Function to handle quickchat messages
   function handleQuickchat(inputs) {
     console.log("handleQuickchat called with inputs:", inputs);
+    closeOverlayWindow();
     const quickchatMap = store.get("tabs")[currentTab]["quickchats"]; // Use the dynamic current tab index
     console.log(inputs);
     const key = inputs.join(",");
@@ -143,6 +150,14 @@ function initializeGamepad(ipcMain, store, getCurrentTab) {
         dpadInputs.push(parseInt(inputMap[index]));
         log.info("D-pad input:", dpadInputs);
         if (dpadInputs.length === 1) {
+          const quickchatMap = store.get("tabs")[currentTab]["quickchats"];
+          const keyPrefix = inputMap[index];
+          const filteredQuickchats = Object.keys(quickchatMap)
+            .filter((key) => key.startsWith(`${keyPrefix},`))
+            .map((key) => ({ key, message: quickchatMap[key] }));
+
+          createOverlayWindow();
+          updateOverlayContent(filteredQuickchats);
           inputTimeout = setTimeout(() => {
             processing = true;
             handleQuickchat(dpadInputs);

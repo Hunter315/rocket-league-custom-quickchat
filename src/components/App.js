@@ -203,9 +203,9 @@ const App = () => {
 
   const columns = {
     0: { icon: dpadUp, chats: [] },
+    6: { icon: dpadLeft, chats: [] },
     2: { icon: dpadRight, chats: [] },
     4: { icon: dpadDown, chats: [] },
-    6: { icon: dpadLeft, chats: [] },
   };
 
   const activeQuickchats = tabsStore[currentTab]?.quickchats || {};
