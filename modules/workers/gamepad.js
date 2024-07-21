@@ -94,7 +94,7 @@ function initializeGamepad(ipcMain, store, getCurrentTab) {
     handleAxisMovement(data.index, data.axis);
   });
 
-  function handleButtonPress(index, button) {
+  async function handleButtonPress(index, button) {
     if (typingInProgress) return;
 
     const doubleClickThreshold = 300; // Time in ms to detect a double-click
@@ -156,8 +156,9 @@ function initializeGamepad(ipcMain, store, getCurrentTab) {
             .filter((key) => key.startsWith(`${keyPrefix},`))
             .map((key) => ({ key, message: quickchatMap[key] }));
 
-          createOverlayWindow();
-          updateOverlayContent(filteredQuickchats);
+          await createOverlayWindow();
+          await updateOverlayContent(filteredQuickchats);
+
           inputTimeout = setTimeout(() => {
             processing = true;
             handleQuickchat(dpadInputs);

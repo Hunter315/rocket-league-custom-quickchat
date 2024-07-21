@@ -43,7 +43,7 @@ const store = new Store({
     tSpeed: 10,
     typingSpeed: 5,
     selectedController: null,
-    activationMethod: "thumbstick",
+    activationMethod: "dpad",
     currentTab: 0,
   },
 });

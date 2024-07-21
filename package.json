@@ -66,8 +66,18 @@
       "dist/**/*",
       "main.js",
       "preload.js",
+      "renderer.js",
       "my-addon/build/Release/**/*",
       "modules/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "src/assets/",
+        "to": "assets",
+        "filter": [
+          "**/*"
+        ]
+      }
     ],
     "win": {
       "target": "nsis",

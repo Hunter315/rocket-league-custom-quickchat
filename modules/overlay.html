@@ -1,94 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Overlay</title>
-  <style>
-    body {
-      margin: 0;
-      background: rgba(12, 11, 27, 0.808);
-      display: flex;
-      justify-content: flex-start;
-      align-items: center;
-      color: white;
-      font-size: 24px;
-      border-radius: 3px;
-      overflow:none;
-
-    }
-    .quickchats {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-    }
-    .quickchat {
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Overlay</title>
+    <style>
+      body {
+        margin: 0;
+        background: rgba(12, 11, 27, 0.808);
         display: flex;
-    width: 100%;
-    align-items: center;
-  
-    padding: 0 5px;
-    }
-    .quickchat img {
-    width: 30px;
-    height: 30px;
-    background-color: #000000bd;
-    margin-right: 10px;
-    }
-    .message {
-        font-size: 15px
-    }
-  </style>
-</head>
-<body>
-  <div class="quickchats"></div>
-  <script>
-    const { ipcRenderer } = require('electron');
-    const log = require("electron-log");
-    const icons = {
-        0: '../src/assets/icons/thick-dpad-up.svg',
-        2:'../src/assets/icons/thick-dpad-right.svg',
-        4:'../src/assets/icons/thick-dpad-down.svg',
-        6: '../src/assets/icons/thick-dpad-left.svg'
-    }
+        justify-content: flex-start;
+        align-items: center;
+        color: white;
+        font-size: 24px;
+        border-radius: 3px;
+        overflow: none;
+      }
+      .quickchats {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .quickchat {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        padding: 0 5px;
+      }
+      .quickchat img {
+        width: 30px;
+        height: 30px;
+        background-color: #000000bd;
+        margin-right: 10px;
+      }
+      .message {
+        font-size: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="quickchats"></div>
+    <script>
+      const { ipcRenderer } = require("electron");
 
+      ipcRenderer.on("update-quickchat", (event, column, icons) => {
+        const container = document.querySelector(".quickchats");
+        container.innerHTML = ""; // Clear existing content
 
-    ipcRenderer.on('update-quickchat', (event, column) => {
-      const container = document.querySelector('.quickchats');
-      container.innerHTML = ''; // Clear existing content
-        log.info("called")
         let i = column.length - 2; // third element
         let j = column.length - 1; // last element
         let k = column.length - 3; // second element
 
-// Swap the objects using destructuring
+        // Swap the objects using destructuring
         [column[i], column[j]] = [column[j], column[i]];
-
         [column[i], column[k]] = [column[k], column[i]];
 
-        log.info(column)
-      column.forEach(quickchat => {
-        const row = document.createElement('div');
-        row.classList.add('quickchat');
+        column.forEach((quickchat) => {
+          const row = document.createElement("div");
+          row.classList.add("quickchat");
 
-        let suffix = quickchat.key.split(',')[1]
-        const icon = document.createElement('img');
-        icon.src = icons[suffix]; // Assuming quickchat.svg is the path to the SVG
+          let suffix = quickchat.key.split(",")[1];
+          const icon = document.createElement("img");
+          icon.src = icons[suffix]; // Path provided by main process
 
+          const message = document.createElement("div");
+          message.classList.add("message");
 
-        const message = document.createElement('div');
-        message.classList.add('message')
+          if (quickchat.message.length > 23) {
+            quickchat.message = quickchat.message.substring(0, 23) + "...";
+          }
+          message.innerText = quickchat.message;
 
-        if(quickchat.message.length > 23 ) {
-            quickchat.message = quickchat.message.substring(0,23) + '...'
-        }
-        message.innerText = quickchat.message;
-
-        row.appendChild(icon);
-        row.appendChild(message);
-        container.appendChild(row);
+          row.appendChild(icon);
+          row.appendChild(message);
+          container.appendChild(row);
+        });
       });
-    });
-  </script>
-</body>
+    </script>
+  </body>
 </html>

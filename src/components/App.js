@@ -9,6 +9,10 @@ import dpadUp from "../assets/icons/dpad-up.svg";
 import dpadRight from "../assets/icons/dpad-right.svg";
 import dpadDown from "../assets/icons/dpad-down.svg";
 import dpadLeft from "../assets/icons/dpad-left.svg";
+import thickDpadUp from "../assets/icons/thick-dpad-up.svg";
+import thickDpadRight from "../assets/icons/thick-dpad-right.svg";
+import thickDpadDown from "../assets/icons/thick-dpad-down.svg";
+import thickDpadLeft from "../assets/icons/thick-dpad-left.svg";
 import "../index.css";
 
 const App = () => {
@@ -20,7 +24,7 @@ const App = () => {
   const [selectedController, setSelectedController] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [expandedDevice, setExpandedDevice] = useState(null);
-  const [activationMethod, setActivationMethod] = useState("thumbstick");
+  const [activationMethod, setActivationMethod] = useState("dpad");
   const [currentTab, setCurrentTab] = useState(0);
   const [toastMessage, setToastMessage] = useState("");
   const [chatEnabled, setChatEnabled] = useState(true);
@@ -202,10 +206,10 @@ const App = () => {
   }
 
   const columns = {
-    0: { icon: dpadUp, chats: [] },
-    6: { icon: dpadLeft, chats: [] },
-    2: { icon: dpadRight, chats: [] },
-    4: { icon: dpadDown, chats: [] },
+    0: { icon: thickDpadUp, chats: [] },
+    6: { icon: thickDpadLeft, chats: [] },
+    2: { icon: thickDpadRight, chats: [] },
+    4: { icon: thickDpadDown, chats: [] },
   };
 
   const activeQuickchats = tabsStore[currentTab]?.quickchats || {};

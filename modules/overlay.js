@@ -1,8 +1,9 @@
-// overlay.js
+const path = require("path");
 const { BrowserWindow, screen, ipcMain, app } = require("electron");
+const log = require("electron-log");
+const url = require("url");
 
 let overlayWindow;
-let alwaysOnTopInterval;
 
 function createOverlayWindow() {
   const primaryDisplay = screen.getPrimaryDisplay();
@@ -27,22 +28,6 @@ function createOverlayWindow() {
     },
   });
 
-  //   overlayWindow = new BrowserWindow({
-  //     width: 200,
-  //     height: 100,
-  //     x: 0, // X position (0 for top-left corner)
-  //     y: 200, // Y position (0 for top-left corner)
-  //     transparent: false,
-  //     frame: true,
-  //     alwaysOnTop: true,
-  //     focusable: true,
-  //     skipTaskbar: false,
-  //     hasShadow: false,
-  //     webPreferences: {
-  //       nodeIntegration: true,
-  //       contextIsolation: false,
-  //     },
-  //   });
   overlayWindow.loadURL(`file://${__dirname}/overlay.html`);
 
   overlayWindow.setIgnoreMouseEvents(true, { forward: true });
@@ -57,8 +42,36 @@ function createOverlayWindow() {
 }
 
 function updateOverlayContent(column) {
+  const appPath = app.getAppPath();
+  log.info("appPAth", appPath);
+  const iconPath = path.join(appPath, "../assets/icons");
+  log.info(iconPath);
+
   if (overlayWindow) {
-    overlayWindow.webContents.send("update-quickchat", column);
+    const icons = {
+      0: url.format({
+        pathname: path.join(iconPath, "thick-dpad-up.svg"),
+        protocol: "file:",
+        slashes: true,
+      }),
+      2: url.format({
+        pathname: path.join(iconPath, "thick-dpad-right.svg"),
+        protocol: "file:",
+        slashes: true,
+      }),
+      4: url.format({
+        pathname: path.join(iconPath, "thick-dpad-down.svg"),
+        protocol: "file:",
+        slashes: true,
+      }),
+      6: url.format({
+        pathname: path.join(iconPath, "thick-dpad-left.svg"),
+        protocol: "file:",
+        slashes: true,
+      }),
+    };
+
+    overlayWindow.webContents.send("update-quickchat", column, icons);
   }
 }
 
