@@ -41,6 +41,11 @@ function initializeController(ipcMain, store, getCurrentTab) {
     (d) => d.vendorId === 1356 && d.productId === 3302
   );
 
+  // DualSense Edge Controller (PS5 Pro Controller)
+  const dualsenseEdgeController = devices.find(
+    (d) => d.vendorId === 1356 && d.productId === 3570  // 0x0DF2 in decimal
+  );
+
   // if (controller) {
   //   const xbox = new HID.HID(controller.path);
   //   xbox.on("data", (data) => {
@@ -158,12 +163,26 @@ function initializeController(ipcMain, store, getCurrentTab) {
 
   if (controller && controllerType !== "xbox") {
     console.log("call");
-    log.info("PS4 controller found:", controller);
+    const isDualSenseEdge = controller.productId === 3570;
+    
+    // Check if it's a DualSense Edge (PS5 Pro Controller)
+    if (isDualSenseEdge) {
+      log.info("DualSense Edge (PS5 Pro) controller found:", controller);
+    } else {
+      log.info("PS4/PS5 controller found:", controller);
+    }
+    
     const device = new HID.HID(controller.path);
     let thumbstickPressed = false;
     let dpadInputs = [];
     let lastDpadState = 8;
     let inputTimeout;
+    
+    // DualSense Edge performance optimization
+    // Edge polls at 1000Hz vs 250Hz for standard DualSense (4x more data)
+    // This throttling prevents game lag by reducing processing rate to ~125Hz
+    let lastProcessTime = 0;
+    const throttleInterval = isDualSenseEdge ? 8 : 1; // Process every 8th packet for Edge (1000Hz->125Hz)
 
     function resetInputs() {
       thumbstickPressed = false;
@@ -203,7 +222,15 @@ function initializeController(ipcMain, store, getCurrentTab) {
     let thumbstickClicked = false;
 
     device.on("data", (data) => {
+      // Early exits for performance
       if (typingInProgress) return;
+      
+      // Throttle DualSense Edge to prevent lag from 1000Hz polling
+      if (isDualSenseEdge) {
+        lastProcessTime++;
+        if (lastProcessTime % throttleInterval !== 0) return;
+      }
+      
       const dpad = data[8];
       const thumbstickClick = data[9];
       const thumbstickX = data[3];
@@ -235,14 +262,14 @@ function initializeController(ipcMain, store, getCurrentTab) {
           if (thumbstickX < 30) {
             // move tab left
             ipcMain.emit("change-tab", "left");
-            console.log("Change tab left");
+            if (!isDualSenseEdge) console.log("Change tab left"); // Reduce log spam for Edge
             debounceTimeout = setTimeout(() => {
               debounceTimeout = null;
             }, 500); // Adjust debounce timeout as needed
           } else if (thumbstickX > 200) {
             // move tab right
             ipcMain.emit("change-tab", "right");
-            console.log("Change tab right");
+            if (!isDualSenseEdge) console.log("Change tab right"); // Reduce log spam for Edge
 
             debounceTimeout = setTimeout(() => {
               debounceTimeout = null;
@@ -260,6 +287,11 @@ function initializeController(ipcMain, store, getCurrentTab) {
 
       if (processing) return;
       if (!chatEnabled) return;
+      
+      // Additional state-based throttling for DualSense Edge
+      if (isDualSenseEdge && dpad === lastDpadState && thumbstickClick === 0) {
+        return; // Skip processing if no state change on Edge (reduces redundant processing)
+      }
 
       if (activationMethod === "thumbstick") {
         if (thumbstickClick === 128 || thumbstickClick === 136) {
