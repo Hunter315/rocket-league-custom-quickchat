@@ -20,14 +20,19 @@ function initializeController(ipcMain, store, getCurrentTab) {
   let rightJoyX = null;
   let lastRightClickTime = 0;
   let chatEnabled = true;
+  let typingPriority = false; // Flag for when quickchat typing is active
 
   ipcMain.on("current-tab-updated", (event, tabIndex) => {
     currentTab = tabIndex;
   });
 
+  ipcMain.on("typing-started", () => {
+    typingPriority = true; // Enable high priority mode during typing
+  });
+
   ipcMain.on("typing-complete", async () => {
     typingInProgress = false;
-    console.log("reset inputs");
+    typingPriority = false; // Disable high priority mode after typing
     await resetInputs();
   });
 
@@ -39,6 +44,11 @@ function initializeController(ipcMain, store, getCurrentTab) {
 
   const ps4Controller = devices.find(
     (d) => d.vendorId === 1356 && d.productId === 3302
+  );
+
+  // DualSense Edge Controller (PS5 Pro Controller)
+  const dualsenseEdgeController = devices.find(
+    (d) => d.vendorId === 1356 && d.productId === 3570  // 0x0DF2 in decimal
   );
 
   // if (controller) {
@@ -73,10 +83,8 @@ function initializeController(ipcMain, store, getCurrentTab) {
 
       */
 
-  console.log("vendorId", controller.vendorId);
   if (controller.vendorId === 1118) {
     controllerType = "xbox";
-    console.log("called ub xbox");
     const xbox = new HID.HID(controller.path);
 
     let thumbstickPressed = false;
@@ -93,12 +101,8 @@ function initializeController(ipcMain, store, getCurrentTab) {
         inputTimeout = null;
       }
 
-      console.log(processing);
-      // processing = false;
-
       setTimeout(() => {
         processing = false;
-        console.log("timeout process", processing);
       }, 200);
     }
 
@@ -119,10 +123,8 @@ function initializeController(ipcMain, store, getCurrentTab) {
     }
 
     xbox.on("data", (data) => {
-      console.log("receiving data");
       if (typingInProgress) return;
       const dpad = data[12];
-      console.log(dpad);
       const thumbstickClick = data[11];
 
       try {
@@ -133,7 +135,6 @@ function initializeController(ipcMain, store, getCurrentTab) {
         ) {
           dpadInputs.push(dpad);
           lastDpadState = dpad;
-          console.log("dpad", dpad);
           log.info("D-pad input:", dpadInputs);
           if (dpadInputs.length === 1) {
             inputTimeout = setTimeout(() => {
@@ -147,7 +148,7 @@ function initializeController(ipcMain, store, getCurrentTab) {
         }
         lastDpadState = dpad;
       } catch (error) {
-        console.log(error);
+        log.error("Controller data processing error:", error);
       }
     });
 
@@ -157,13 +158,26 @@ function initializeController(ipcMain, store, getCurrentTab) {
   }
 
   if (controller && controllerType !== "xbox") {
-    console.log("call");
-    log.info("PS4 controller found:", controller);
+    const isDualSenseEdge = controller.productId === 3570;
+    
+    // Check if it's a DualSense Edge (PS5 Pro Controller)
+    if (isDualSenseEdge) {
+      log.info("DualSense Edge (PS5 Pro) controller found:", controller);
+    } else {
+      log.info("PS4/PS5 controller found:", controller);
+    }
+    
     const device = new HID.HID(controller.path);
     let thumbstickPressed = false;
     let dpadInputs = [];
     let lastDpadState = 8;
     let inputTimeout;
+    
+    // DualSense Edge performance optimization
+    // Edge polls at 1000Hz vs 250Hz for standard DualSense (4x more data)
+    // This throttling prevents game lag by reducing processing rate to ~125Hz
+    let lastProcessTime = 0;
+    const throttleInterval = isDualSenseEdge ? 8 : 1; // Process every 8th packet for Edge (1000Hz->125Hz)
 
     function resetInputs() {
       thumbstickPressed = false;
@@ -174,12 +188,8 @@ function initializeController(ipcMain, store, getCurrentTab) {
         inputTimeout = null;
       }
 
-      console.log(processing);
-      // processing = false;
-
       setTimeout(() => {
         processing = false;
-        console.log("timeout process", processing);
       }, 200);
     }
 
@@ -203,10 +213,44 @@ function initializeController(ipcMain, store, getCurrentTab) {
     let thumbstickClicked = false;
 
     device.on("data", (data) => {
+      // Early exits for performance
       if (typingInProgress) return;
+      
+      // During high priority typing mode, be extremely conservative with input processing
+      if (typingPriority) {
+        // Only process critical controller management inputs during typing
+        const dpad = data[8];
+        const thumbstickClick = data[9];
+        
+        // Allow only essential functions like chat toggle during typing
+        if (thumbstickClick === 128 || thumbstickClick === 136) {
+          // Allow thumbstick double-click for chat toggle even during typing
+        } else {
+          return; // Skip all other input processing during typing priority mode
+        }
+      }
+      
+      // Throttle DualSense Edge to prevent lag from 1000Hz polling
+      if (isDualSenseEdge) {
+        lastProcessTime++;
+        if (lastProcessTime % throttleInterval !== 0) return;
+      }
+      
       const dpad = data[8];
       const thumbstickClick = data[9];
       const thumbstickX = data[3];
+      
+      // Skip processing if only gameplay inputs are active (R2, R1, L2, L1, face buttons)
+      // This prevents interference when driving, boosting, or using camera controls
+      const gameplayInputs = data[6]; // R2/L2 triggers
+      const faceButtons = data[7];     // X, O, Square, Triangle, R1, L1
+      
+      // If we're not in a quickchat sequence and only gameplay inputs are being used, skip entirely
+      if (!processing && !thumbstickPressed && dpadInputs.length === 0) {
+        if ((gameplayInputs > 0 || faceButtons > 0) && dpad === 8 && (thumbstickClick === 0 || thumbstickClick === 8)) {
+          return; // Skip - user is just playing the game normally
+        }
+      }
 
       try {
         const doubleClickThreshold = 300;
@@ -235,14 +279,14 @@ function initializeController(ipcMain, store, getCurrentTab) {
           if (thumbstickX < 30) {
             // move tab left
             ipcMain.emit("change-tab", "left");
-            console.log("Change tab left");
+            if (!isDualSenseEdge) console.log("Change tab left"); // Reduce log spam for Edge
             debounceTimeout = setTimeout(() => {
               debounceTimeout = null;
             }, 500); // Adjust debounce timeout as needed
           } else if (thumbstickX > 200) {
             // move tab right
             ipcMain.emit("change-tab", "right");
-            console.log("Change tab right");
+            if (!isDualSenseEdge) console.log("Change tab right"); // Reduce log spam for Edge
 
             debounceTimeout = setTimeout(() => {
               debounceTimeout = null;
@@ -250,7 +294,7 @@ function initializeController(ipcMain, store, getCurrentTab) {
           }
         }
       } catch (error) {
-        console.log(error);
+        log.error("Controller data processing error:", error);
       }
 
       if (thumbstickClick === 64 && thumbstickX >= 120 && thumbstickX <= 150) {
@@ -260,12 +304,28 @@ function initializeController(ipcMain, store, getCurrentTab) {
 
       if (processing) return;
       if (!chatEnabled) return;
+      
+      // Additional state-based throttling for all controllers
+      // Skip processing if no relevant state changes (D-pad neutral, no thumbstick clicks)
+      if (dpad === lastDpadState && thumbstickClick === 0 && !processing && !thumbstickPressed) {
+        return; // Skip processing if no quickchat-relevant state changes
+      }
+      
+      // Enhanced filtering for DualSense Edge during intense gameplay
+      if (isDualSenseEdge) {
+        // If triggers are being heavily used (like during driving), reduce processing further
+        const triggerActivity = data[6]; // R2/L2 values
+        if (triggerActivity > 128 && !processing && dpadInputs.length === 0) {
+          // User is actively driving/accelerating - be even more conservative
+          if (lastProcessTime % (throttleInterval * 2) !== 0) return;
+        }
+      }
 
       if (activationMethod === "thumbstick") {
         if (thumbstickClick === 128 || thumbstickClick === 136) {
           if (!thumbstickPressed) {
             thumbstickPressed = true;
-            log.info("Right thumbstick pressed");
+            if (!isDualSenseEdge) log.info("Right thumbstick pressed"); // Reduce log spam
             setTimeout(resetInputs, 3000);
           }
         }
@@ -278,7 +338,7 @@ function initializeController(ipcMain, store, getCurrentTab) {
           ) {
             dpadInputs.push(dpad);
             lastDpadState = dpad;
-            log.info("D-pad input:", dpadInputs);
+            if (!isDualSenseEdge) log.info("D-pad input:", dpadInputs); // Reduce log spam
             if (dpadInputs.length === 2) {
               handleQuickchat(dpadInputs);
             }
@@ -296,7 +356,7 @@ function initializeController(ipcMain, store, getCurrentTab) {
           ) {
             dpadInputs.push(dpad);
             lastDpadState = dpad;
-            log.info("D-pad input:", dpadInputs);
+            if (!isDualSenseEdge) log.info("D-pad input:", dpadInputs); // Reduce log spam
             if (dpadInputs.length === 1) {
               const quickchatMap = store.get("tabs")[currentTab]["quickchats"];
               const keyPrefix = dpadInputs[0];
@@ -317,7 +377,7 @@ function initializeController(ipcMain, store, getCurrentTab) {
           }
           lastDpadState = dpad;
         } catch (error) {
-          console.log(error);
+          log.error("Controller data processing error:", error);
         }
       }
     });

@@ -27,7 +27,7 @@ const Settings = ({
         </div>
       </label>
       <label className="label-search">
-        Open Text Box Delay
+        Open Text Box Delay:
         <div className="value-container">
           <input
             type="number"

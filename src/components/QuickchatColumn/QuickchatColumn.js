@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
 
-const QuickchatColumn = ({
+const QuickchatColumn = memo(({
   colKey,
   column,
   columns,
@@ -54,6 +54,6 @@ const QuickchatColumn = ({
       </div>
     </div>
   );
-};
+});
 
 export default QuickchatColumn;

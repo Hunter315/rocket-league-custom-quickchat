@@ -92,17 +92,14 @@ const App = () => {
     window.electron.on("change-tab", handleChangeTab);
 
     const handleChatToggle = (event, chatEnabled) => {
-      console.log("HANDLE CHAT TOGGLE", chatEnabled);
       setChatEnabled(chatEnabled);
     };
 
     window.electron.on("ui-chat-toggled", handleChatToggle);
 
-    console.log({ chatEnabled });
-
     return () => {
       window.electron.removeListener("change-tab", handleChangeTab);
-      // window.electron.removeListener("chat-toggled", handleChatToggle);
+      window.electron.removeListener("ui-chat-toggled", handleChatToggle);
     };
   }, []);
 

@@ -45,4 +45,5 @@ function pollGamepads() {
   }
 }
 
-setInterval(pollGamepads, 100); // Poll gamepad state every 100ms
+// Gamepad polling disabled - using HID controller input instead for better performance
+// setInterval(pollGamepads, 100); // Poll gamepad state every 100ms
