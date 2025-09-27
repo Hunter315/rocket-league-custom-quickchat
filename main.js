@@ -49,11 +49,12 @@ const store = new Store({
 });
 
 let currentTab = 0;
+let mainWindow = null; // Cache window reference to avoid repeated getAllWindows() calls
 
 app.on("ready", async () => {
   log.info("App is ready");
   try {
-    createWindow();
+    mainWindow = createWindow();
     initializeUpdater();
     initializeKeyboard(ipcMain, store);
     initializeController(ipcMain, store, () => currentTab); // Pass a function to get the current tab
@@ -66,9 +67,9 @@ app.on("ready", async () => {
 
   ipcMain.on("save-quickchats", (event, tabs) => {
     store.set("tabs", tabs);
-    BrowserWindow.getAllWindows().forEach((win) => {
-      win.webContents.send("quickchats-updated", tabs);
-    });
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send("quickchats-updated", tabs);
+    }
   });
 
   ipcMain.handle("load-quickchats", async () => {
@@ -92,9 +93,9 @@ app.on("ready", async () => {
   });
 
   ipcMain.on("change-tab", (event) => {
-    BrowserWindow.getAllWindows().forEach((win) => {
-      win.webContents.send("change-tab", event);
-    });
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send("change-tab", event);
+    }
   });
 
   ipcMain.handle("search-controllers", async () => {
@@ -103,17 +104,17 @@ app.on("ready", async () => {
   });
 
   ipcMain.on("chat-toggled", (toggleValue) => {
-    BrowserWindow.getAllWindows().forEach((win) => {
-      win.webContents.send("ui-chat-toggled", toggleValue);
-    });
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send("ui-chat-toggled", toggleValue);
+    }
   });
 
   ipcMain.on("update-current-tab", (event, tabIndex) => {
     currentTab = tabIndex;
     store.set("currentTab", currentTab);
-    BrowserWindow.getAllWindows().forEach((win) => {
-      win.webContents.send("current-tab-updated", currentTab); // Notify all windows of the current tab change
-    });
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send("current-tab-updated", currentTab);
+    }
     ipcMain.emit("current-tab-updated", null, currentTab); // Ensure event is propagated to ipcMain listeners
   });
 });

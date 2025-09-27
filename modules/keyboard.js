@@ -3,10 +3,11 @@ function initializeKeyboard(ipcMain, store) {
   const log = require("electron-log");
 
   ipcMain.on("send-quickchat", async (event, message) => {
+    // Cache settings to avoid repeated store.get() calls
     const typingSpeed = store.get("typingSpeed");
     const tSpeed = store.get("tSpeed");
     const delay = typingSpeed;
-    const chunkSize = 120; // Define the chunk size, adjust based on testing
+    const chunkSize = 120;
 
     function pressKeyWithRetry(key, retries = 3) {
       return new Promise((resolve) => {

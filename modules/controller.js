@@ -27,7 +27,6 @@ function initializeController(ipcMain, store, getCurrentTab) {
 
   ipcMain.on("typing-complete", async () => {
     typingInProgress = false;
-    console.log("reset inputs");
     await resetInputs();
   });
 
@@ -78,10 +77,8 @@ function initializeController(ipcMain, store, getCurrentTab) {
 
       */
 
-  console.log("vendorId", controller.vendorId);
   if (controller.vendorId === 1118) {
     controllerType = "xbox";
-    console.log("called ub xbox");
     const xbox = new HID.HID(controller.path);
 
     let thumbstickPressed = false;
@@ -98,12 +95,8 @@ function initializeController(ipcMain, store, getCurrentTab) {
         inputTimeout = null;
       }
 
-      console.log(processing);
-      // processing = false;
-
       setTimeout(() => {
         processing = false;
-        console.log("timeout process", processing);
       }, 200);
     }
 
@@ -124,10 +117,8 @@ function initializeController(ipcMain, store, getCurrentTab) {
     }
 
     xbox.on("data", (data) => {
-      console.log("receiving data");
       if (typingInProgress) return;
       const dpad = data[12];
-      console.log(dpad);
       const thumbstickClick = data[11];
 
       try {
@@ -138,7 +129,6 @@ function initializeController(ipcMain, store, getCurrentTab) {
         ) {
           dpadInputs.push(dpad);
           lastDpadState = dpad;
-          console.log("dpad", dpad);
           log.info("D-pad input:", dpadInputs);
           if (dpadInputs.length === 1) {
             inputTimeout = setTimeout(() => {
@@ -152,7 +142,7 @@ function initializeController(ipcMain, store, getCurrentTab) {
         }
         lastDpadState = dpad;
       } catch (error) {
-        console.log(error);
+        log.error("Controller data processing error:", error);
       }
     });
 
@@ -162,7 +152,6 @@ function initializeController(ipcMain, store, getCurrentTab) {
   }
 
   if (controller && controllerType !== "xbox") {
-    console.log("call");
     const isDualSenseEdge = controller.productId === 3570;
     
     // Check if it's a DualSense Edge (PS5 Pro Controller)
@@ -193,12 +182,8 @@ function initializeController(ipcMain, store, getCurrentTab) {
         inputTimeout = null;
       }
 
-      console.log(processing);
-      // processing = false;
-
       setTimeout(() => {
         processing = false;
-        console.log("timeout process", processing);
       }, 200);
     }
 
@@ -277,7 +262,7 @@ function initializeController(ipcMain, store, getCurrentTab) {
           }
         }
       } catch (error) {
-        console.log(error);
+        log.error("Controller data processing error:", error);
       }
 
       if (thumbstickClick === 64 && thumbstickX >= 120 && thumbstickX <= 150) {
@@ -349,7 +334,7 @@ function initializeController(ipcMain, store, getCurrentTab) {
           }
           lastDpadState = dpad;
         } catch (error) {
-          console.log(error);
+          log.error("Controller data processing error:", error);
         }
       }
     });

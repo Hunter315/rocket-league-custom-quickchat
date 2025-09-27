@@ -8,7 +8,7 @@ function createWindow() {
     const displays = screen.getAllDisplays();
     const secondaryDisplay = displays.length > 1 ? displays[1] : displays[0];
 
-    let win = new BrowserWindow({
+    const win = new BrowserWindow({
       width: 1200,
       height: 1000,
       x: secondaryDisplay.bounds.x + 50,
@@ -31,10 +31,12 @@ function createWindow() {
 
     win.on("closed", function () {
       log.info("Window closed.");
-      win = null;
     });
+    
+    return win; // Return window reference for caching
   } catch (e) {
     log.info("Error creating window: ", e);
+    return null;
   }
 }
 
