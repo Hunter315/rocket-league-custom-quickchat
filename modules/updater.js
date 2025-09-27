@@ -45,13 +45,8 @@ function initializeUpdater() {
     log.error("Auto-updater error:", error);
   });
 
-  // Check for updates when app starts and then every hour
+  // Check for updates only when app starts
   autoUpdater.checkForUpdatesAndNotify();
-  
-  // Set up periodic checks (every hour)
-  setInterval(() => {
-    autoUpdater.checkForUpdatesAndNotify();
-  }, 60 * 60 * 1000);
 }
 
 module.exports = { initializeUpdater };
