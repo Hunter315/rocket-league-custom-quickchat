@@ -8,6 +8,9 @@ function initializeKeyboard(ipcMain, store) {
     const tSpeed = store.get("tSpeed");
     const delay = typingSpeed;
     const chunkSize = 120;
+    
+    // Signal start of typing to controller module for priority handling
+    ipcMain.emit("typing-started");
 
     function pressKeyWithRetry(key, retries = 3) {
       return new Promise((resolve) => {
