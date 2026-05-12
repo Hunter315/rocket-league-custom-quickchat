@@ -55,7 +55,7 @@ app.on("ready", async () => {
   log.info("App is ready");
   try {
     mainWindow = createWindow();
-    initializeUpdater();
+    initializeUpdater(mainWindow);
     initializeKeyboard(ipcMain, store);
     initializeController(ipcMain, store, () => currentTab); // Pass a function to get the current tab
     // initializeGamepad(ipcMain, store, () => currentTab);
@@ -85,11 +85,12 @@ app.on("ready", async () => {
     };
   });
 
-  ipcMain.on("save-settings", (event, settings) => {
+  ipcMain.handle("save-settings", async (event, settings) => {
     store.set("tSpeed", settings.tSpeed);
     store.set("typingSpeed", settings.typingSpeed);
     store.set("selectedController", settings.selectedController);
     store.set("activationMethod", settings.activationMethod);
+    return true; // Return success
   });
 
   ipcMain.on("change-tab", (event) => {

@@ -5,6 +5,7 @@ import { Settings } from "./Settings";
 import { Tabs } from "./Tabs";
 import { Toast } from "./Toast";
 import { ChatIndicator } from "./ChatIndicator";
+import { ControllerStatus } from "./ControllerStatus";
 import dpadUp from "../assets/icons/dpad-up.svg";
 import dpadRight from "../assets/icons/dpad-right.svg";
 import dpadDown from "../assets/icons/dpad-down.svg";
@@ -28,6 +29,8 @@ const App = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const [toastMessage, setToastMessage] = useState("");
   const [chatEnabled, setChatEnabled] = useState(true);
+  const [updateVersion, setUpdateVersion] = useState(null);
+  const [updateReady, setUpdateReady] = useState(false);
 
   const handleChangeTabRef = useRef();
 
@@ -66,21 +69,13 @@ const App = () => {
       setActivationMethod(settings.activationMethod || "thumbstick");
     });
 
-    window.electron.onUpdateAvailable(() => {
-      alert("A new update is available. Downloading now...");
+    window.electron.onUpdateAvailable((event, version) => {
+      setUpdateVersion(version);
     });
 
-    window.electron.onUpdateDownloaded(() => {
-      const userResponse = confirm(
-        "Update Downloaded. It will be installed on restart. Restart now?"
-      );
-      if (userResponse) {
-        window.electron.restartApp();
-      }
-    });
-
-    window.electron.on("send-quickchat", (event, message) => {
-      alert(`Quickchat: ${message}`); // Handle the quickchat message appropriately
+    window.electron.onUpdateDownloaded((event, version) => {
+      setUpdateVersion(version);
+      setUpdateReady(true);
     });
 
     const handleChangeTab = (event, direction) => {
@@ -142,6 +137,18 @@ const App = () => {
   const handleSelectController = (device) => {
     setSelectedController(device);
     setIsModalOpen(false);
+
+    // Save the controller setting immediately and trigger reinitializer
+    window.electron.saveSettings({
+      tSpeed,
+      typingSpeed,
+      selectedController: device,
+      activationMethod,
+    }).then(() => {
+      // Notify the main process that controller was selected
+      window.electron.send("controller-selected");
+      setToastMessage("Controller selected and initialized!");
+    });
   };
 
   const toggleDevice = (device) => {
@@ -213,6 +220,18 @@ const App = () => {
 
   return (
     <div className="container">
+      {updateVersion && (
+        <div className="update-banner">
+          {updateReady ? (
+            <>
+              <span>v{updateVersion} downloaded — restart to apply.</span>
+              <button onClick={() => window.electron.restartApp()}>Restart now</button>
+            </>
+          ) : (
+            <span>v{updateVersion} is available, downloading...</span>
+          )}
+        </div>
+      )}
       <div className="header">
         <h1 className="title">Quickchat Manager</h1>
         <ChatIndicator chatEnabled={chatEnabled} />
@@ -259,6 +278,7 @@ const App = () => {
         handleSearchControllers={handleSearchControllers}
         selectedController={selectedController}
       />
+      <ControllerStatus />
       <ControllerModal
         isOpen={isModalOpen}
         onRequestClose={() => setIsModalOpen(false)}

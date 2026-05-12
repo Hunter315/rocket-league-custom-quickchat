@@ -5,8 +5,9 @@ contextBridge.exposeInMainWorld("electron", {
   loadSettings: () => ipcRenderer.invoke("load-settings"),
   saveQuickchats: (quickchats) =>
     ipcRenderer.send("save-quickchats", quickchats),
-  saveSettings: (settings) => ipcRenderer.send("save-settings", settings),
+  saveSettings: (settings) => ipcRenderer.invoke("save-settings", settings),
   searchControllers: () => ipcRenderer.invoke("search-controllers"),
+  getControllerStatus: () => ipcRenderer.invoke("get-controller-status"),
   onUpdateAvailable: (callback) => ipcRenderer.on("update-available", callback),
   onUpdateDownloaded: (callback) =>
     ipcRenderer.on("update-downloaded", callback),
@@ -20,6 +21,7 @@ contextBridge.exposeInMainWorld("electron", {
       "gamepad-axis-moved",
       "ui-chat-toggled",
       "chat-toggled",
+      "controller-status-changed",
     ];
     if (validChannels.includes(channel)) {
       ipcRenderer.on(channel, listener);
@@ -34,6 +36,7 @@ contextBridge.exposeInMainWorld("electron", {
       "gamepad-axis-moved",
       "ui-chat-toggled",
       "chat-toggled",
+      "controller-status-changed",
     ];
     if (validChannels.includes(channel)) {
       ipcRenderer.removeListener(channel, listener);
@@ -48,6 +51,7 @@ contextBridge.exposeInMainWorld("electron", {
       "gamepad-axis-moved",
       "ui-chat-toggled",
       "chat-toggled",
+      "controller-selected",
     ];
     if (validChannels.includes(channel)) {
       ipcRenderer.send(channel, data);
